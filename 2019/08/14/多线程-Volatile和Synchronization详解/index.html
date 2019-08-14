@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Nginx,Https,">
+  <meta name="keywords" content="多线程,Java,Synchronization,Volatile,">
 
 
 
@@ -81,20 +81,25 @@
 
 
 
-<meta name="description" content="Https配置简介要保证Web浏览器到服务器的安全连接，HTTPS几乎是唯一选择。HTTPS其实就是HTTP over SSL，也就是让HTTP连接建立在SSL安全连接之上。 SSL使用证书来创建安全连接。有两种验证模式：  1 仅客户端验证服务器的证书，客户端自己不提供证书；  2 客户端和服务器都互相验证对方的证书。   显然第二种方式安全性更高，一般用网上银行会这么搞，但是，Dayu服务只需">
-<meta name="keywords" content="Nginx,Https">
+<meta name="description" content="在多线程并发编程中synchronized和volatile都扮演着重要的角色，volatile是轻量级的synchronized，它在多处理器开发中保证了共享变量的“可见性”。如果volatile变量修饰符使用恰当的话，它比synchronized的使用和执行成本更低，因为它不会引起线程上下文的切换和调度。本文将深入分析volatile和synchronize的原理，通过深入分析帮助我们正确地使">
+<meta name="keywords" content="多线程,Java,Synchronization,Volatile">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Nginx Https 配置">
-<meta property="og:url" content="http://yoursite.com/2019/07/10/Nginx-Https-配置/index.html">
+<meta property="og:title" content="[多线程]Volatile和Synchronization详解">
+<meta property="og:url" content="http://yoursite.com/2019/08/14/多线程-Volatile和Synchronization详解/index.html">
 <meta property="og:site_name" content="Austin Brant">
-<meta property="og:description" content="Https配置简介要保证Web浏览器到服务器的安全连接，HTTPS几乎是唯一选择。HTTPS其实就是HTTP over SSL，也就是让HTTP连接建立在SSL安全连接之上。 SSL使用证书来创建安全连接。有两种验证模式：  1 仅客户端验证服务器的证书，客户端自己不提供证书；  2 客户端和服务器都互相验证对方的证书。   显然第二种方式安全性更高，一般用网上银行会这么搞，但是，Dayu服务只需">
+<meta property="og:description" content="在多线程并发编程中synchronized和volatile都扮演着重要的角色，volatile是轻量级的synchronized，它在多处理器开发中保证了共享变量的“可见性”。如果volatile变量修饰符使用恰当的话，它比synchronized的使用和执行成本更低，因为它不会引起线程上下文的切换和调度。本文将深入分析volatile和synchronize的原理，通过深入分析帮助我们正确地使">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://yoursite.com/images/nginx-version.jpg">
-<meta property="og:updated_time" content="2019-07-11T02:08:03.171Z">
+<meta property="og:image" content="http://yoursite.com/images/java_memory_structure.png">
+<meta property="og:image" content="http://yoursite.com/images/object_header1.png">
+<meta property="og:image" content="http://yoursite.com/images/object_header2.png">
+<meta property="og:image" content="http://yoursite.com/images/object_header3.png">
+<meta property="og:image" content="http://yoursite.com/images/partiality_lock.jpg">
+<meta property="og:image" content="http://yoursite.com/images/lock_upgrade.jpg">
+<meta property="og:updated_time" content="2019-08-14T12:58:37.958Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Nginx Https 配置">
-<meta name="twitter:description" content="Https配置简介要保证Web浏览器到服务器的安全连接，HTTPS几乎是唯一选择。HTTPS其实就是HTTP over SSL，也就是让HTTP连接建立在SSL安全连接之上。 SSL使用证书来创建安全连接。有两种验证模式：  1 仅客户端验证服务器的证书，客户端自己不提供证书；  2 客户端和服务器都互相验证对方的证书。   显然第二种方式安全性更高，一般用网上银行会这么搞，但是，Dayu服务只需">
-<meta name="twitter:image" content="http://yoursite.com/images/nginx-version.jpg">
+<meta name="twitter:title" content="[多线程]Volatile和Synchronization详解">
+<meta name="twitter:description" content="在多线程并发编程中synchronized和volatile都扮演着重要的角色，volatile是轻量级的synchronized，它在多处理器开发中保证了共享变量的“可见性”。如果volatile变量修饰符使用恰当的话，它比synchronized的使用和执行成本更低，因为它不会引起线程上下文的切换和调度。本文将深入分析volatile和synchronize的原理，通过深入分析帮助我们正确地使">
+<meta name="twitter:image" content="http://yoursite.com/images/java_memory_structure.png">
 
 
 
@@ -124,13 +129,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2019/07/10/Nginx-Https-配置/">
+  <link rel="canonical" href="http://yoursite.com/2019/08/14/多线程-Volatile和Synchronization详解/">
 
 
 
 
 
-  <title>Nginx Https 配置 | Austin Brant</title>
+  <title>[多线程]Volatile和Synchronization详解 | Austin Brant</title>
   
 
 
@@ -289,7 +294,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/10/Nginx-Https-配置/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/14/多线程-Volatile和Synchronization详解/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Austin Brant">
@@ -306,7 +311,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Nginx Https 配置</h1>
+          <h1 class="post-title" itemprop="name headline">[多线程]Volatile和Synchronization详解</h1>
         
 
         <div class="post-meta">
@@ -318,8 +323,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-10T20:19:12+08:00">
-                2019-07-10
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-14T12:55:13+08:00">
+                2019-08-14
               </time>
             
 
@@ -334,8 +339,8 @@
               
                 <span class="post-meta-item-text">更新于&#58;</span>
               
-              <time title="更新于" itemprop="dateModified" datetime="2019-07-11T10:08:03+08:00">
-                2019-07-11
+              <time title="更新于" itemprop="dateModified" datetime="2019-08-14T20:58:37+08:00">
+                2019-08-14
               </time>
             
           </span>
@@ -353,8 +358,19 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/网络/" itemprop="url" rel="index">
-                    <span itemprop="name">网络</span>
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/多线程/" itemprop="url" rel="index">
+                    <span itemprop="name">多线程</span>
                   </a>
                 </span>
 
@@ -389,7 +405,7 @@
                   <span class="post-meta-item-text">字数统计&#58;</span>
                 
                 <span title="字数统计">
-                  1.3k
+                  4.3k
                 </span>
               
 
@@ -405,7 +421,7 @@
                   <span class="post-meta-item-text">阅读时长 &asymp;</span>
                 
                 <span title="阅读时长">
-                  5
+                  14
                 </span>
               
             </div>
@@ -426,47 +442,150 @@
       
 
       
-        <h1 id="Https配置"><a href="#Https配置" class="headerlink" title="Https配置"></a>Https配置</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>要保证Web浏览器到服务器的安全连接，HTTPS几乎是唯一选择。HTTPS其实就是HTTP over SSL，也就是让HTTP连接建立在SSL安全连接之上。</p>
-<p>SSL使用证书来创建安全连接。有两种验证模式：</p>
+        <p>在多线程并发编程中synchronized和volatile都扮演着重要的角色，volatile是轻量级的synchronized，它在多处理器开发中保证了共享变量的“可见性”。如果volatile变量修饰符使用恰当的话，它比synchronized的使用和执行成本更低，因为它不会引起线程上下文的切换和调度。本文将深入分析volatile和synchronize的原理，通过深入分析帮助我们正确地使用volatile和synchronize关键字。首先先了解下并发编程的三大概念。</p>
+<h1 id="并发编程的三大概念"><a href="#并发编程的三大概念" class="headerlink" title="并发编程的三大概念"></a>并发编程的三大概念</h1><h2 id="可见性"><a href="#可见性" class="headerlink" title="可见性"></a>可见性</h2><blockquote>
+<p>可见性的意思是当一个线程修改一个共享变量时，另外一个线程能立马读到这个修改的值。</p>
+</blockquote>
+<h2 id="原子性"><a href="#原子性" class="headerlink" title="原子性"></a>原子性</h2><blockquote>
+<p>原子（atomic）本意是“不能被进一步分割的最小粒子”，而原子操作（atomic operation）意为“不可被中断的一个或一系列操作”。即一个操作或者多个操作 要么全部执行并且执行的过程不会被任何因素打断，要么就都不执行。</p>
+</blockquote>
+<p>在Java中，对基本数据类型的变量的读取和赋值操作是原子性操作，即这些操作是不可被中断的，要么执行，要么不执行。但在多处理器上实现原子操作就变得有点复杂。</p>
+<p>比如 a=0；（a非long和double类型） 这个操作是不可分割的，那么我们说这个操作时原子操作。再比如：a++； 这个操作实际是a = a + 1；是可分割的，所以他不是一个原子操作。非原子操作都会存在线程安全问题，需要我们使用同步技术（sychronized）来让它变成一个原子操作。一个操作是原子操作，那么我们称它具有原子性。java的concurrent包下提供了一些原子类，我们可以通过阅读API来了解这些原子类的用法。比如：AtomicInteger、AtomicLong、AtomicReference等。</p>
+<h2 id="有序性"><a href="#有序性" class="headerlink" title="有序性"></a>有序性</h2><blockquote>
+<p>有序性就是程序执行的顺序按照代码的先后顺序执行。</p>
+</blockquote>
+<p>什么是指令重排序，一般来说，处理器为了提高程序运行效率，可能会对输入代码进行优化，它不保证程序中各个语句的执行先后顺序同代码中的顺序一致，但是它会保证程序最终执行结果和代码顺序执行的结果是一致的。</p>
+<p>指令重排序不会影响单个线程的执行，但是会影响到线程并发执行的正确性。也就是说，要想并发程序正确地执行，必须要保证原子性、可见性以及有序性。只要有一个没有被保证，就有可能会导致程序运行不正确。</p>
+<p>在Java内存模型中，允许编译器和处理器对指令进行重排序，但是重排序过程不会影响到单线程程序的执行，却会影响到多线程并发执行的正确性。在Java里面，可以通过volatile关键字来保证一定的“有序性”。另外可以通过synchronized和Lock来保证有序性，很显然，synchronized和Lock保证每个时刻是有一个线程执行同步代码，相当于是让线程顺序执行同步代码，自然就保证了有序性。</p>
+<p>另外，Java内存模型具备一些先天的“有序性”，即不需要通过任何手段就能够得到保证的有序性，这个通常也称为 happens-before 原则。如果两个操作的执行次序无法从happens-before原则推导出来，那么它们就不能保证它们的有序性，虚拟机可以随意地对它们进行重排序。</p>
+<h1 id="Java内存模型"><a href="#Java内存模型" class="headerlink" title="Java内存模型"></a>Java内存模型</h1><p><img src="/images/java_memory_structure.png" alt="java内存模型"></p>
+<p>Java内存模型规定了所有的变量都存储在<strong>主内存</strong>中。<font color="#dd0000">为了提高处理速度，<strong>处理器不直接和主内存进行通信</strong>，而是先将系统内存的数据读到内部缓存（L1，L2或其他，俗称工作内存），线程对变量的所有操作（读取，赋值）都必须在工作内存中进行</font>，但操作完不知道何时会写到内存。</p>
+<p>不同线程之间也无法直接访问对方工作内存中的变量，线程间变量值的传递均需要通过主内存来完成。</p>
+<h1 id="Volatile的定义与实现原理"><a href="#Volatile的定义与实现原理" class="headerlink" title="Volatile的定义与实现原理"></a>Volatile的定义与实现原理</h1><p>Java语言规范第3版中对volatile的定义如下：Java编程语言允许线程访问共享变量，为了确保共享变量能被准确和一致地更新，线程应该确保通过 <strong>排他锁</strong> 单独获得这个变量。Java语言提供了volatile，在某些情况下比锁要更加方便。如果一个字段被声明成volatile，Java线程内存模型确保所有线程看到这个变量的值是一致的。</p>
+<p>让我们在X86处理器下通过工具获取JIT编译器生成的汇编指令来查看对volatile进行写操作时，CPU会做什么事情。</p>
+<p>Java代码如下。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">instance = <span class="keyword">new</span> Singleton();     <span class="comment">// instance是volatile变量</span></span><br></pre></td></tr></table></figure>
+
+<p>转变成汇编代码，如下。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0x01a3de1d: movb $0×0,0×1104800(%esi);0x01a3de24: lock addl $0×0,(%esp);</span><br></pre></td></tr></table></figure>
+
+<p>有volatile变量修饰的共享变量进行写操作的时候会多出第二行汇编代码，通过查IA-32架构软件开发者手册可知，Lock前缀的指令在多核处理器下会引发了两件事情:</p>
+<blockquote>
+<font color="#dd0000">
+ 1）将当前处理器缓存行的数据写回到系统内存。
+
+
+<p> 2）这个写回内存的操作会使在其他CPU里缓存了该内存地址的数据无效。<br></p></font><p></p>
+</blockquote>
+<p>如果对声明了volatile的变量进行写操作，<strong>JVM就会向处理器发送一条Lock前缀的指令</strong>，将这个变量所在缓存行的数据写回到系统内存。但是，就算写回到内存，如果其他处理器缓存的值还是旧的，再执行计算操作就会有问题。所以，在多处理器下，为了保证各个处理器的缓存是一致的，就会实现缓存一致性协议，每个处理器通过 <strong>嗅探在总线上传播的数据</strong> 来检查自己缓存的值是不是过期了，当处理器发现自己缓存行对应的内存地址被修改，就会将当前处理器的缓存行设置成无效状态，当处理器对这个数据进行修改操作的时候，会 <strong>重新从系统内存中把数据读到处理器缓存里</strong> 。</p>
+<p>具体讲解volatile的两条实现原则。</p>
 <ul>
-<li><p>1 仅客户端验证服务器的证书，客户端自己不提供证书；</p>
+<li><p>1）<strong>Lock前缀指令会引起处理器缓存回写到内存</strong></p>
+<p>  Lock前缀指令导致在执行指令期间，声言处理器的LOCK#信号。在多处理器环境中，LOCK#信号确保在声言该信号期间，处理器可以独占任何共享内存。但是，在新的处理器里，LOCK＃信号一般不锁总线，而是锁缓存，毕竟锁总线开销的比较大，它会锁定这块内存区域的缓存并回写到内存，并使用缓存一致性机制来确保修改的原子性，此操作被称为 <strong>“缓存锁定”</strong> ，<strong>缓存一致性机制会阻止同时修改由两个以上处理器缓存的内存区域数据</strong>。</p>
 </li>
-<li><p>2 客户端和服务器都互相验证对方的证书。</p>
+<li><p>2）<strong>一个处理器的缓存回写到内存会导致其他处理器的缓存无效</strong> </p>
+<p>  IA-32处理器和Intel 64处理器使用 <strong>MESI（修改、独占、共享、无效）控制协议</strong> 去维护内部缓存和其他处理器缓存的一致性。在多核处理器系统中进行操作的时候，IA-32和Intel 64处理器能 <strong>嗅探其他处理器访问系统内存和它们的内部缓存</strong>。 <strong>处理器使用嗅探技术保证它的内部缓存、系统内存和其他处理器的缓存的数据在总线上保持一致</strong>。 例如，在Pentium和P6 family处理器中，如果通过嗅探一个处理器来检测其他处理器打算写内存地址，<strong>而这个地址当前处于共享状态，那么正在嗅探的处理器将使它自己的缓存行无效，在下次访问相同内存地址时，强制执行缓存行填充。</strong></p>
 </li>
 </ul>
-<p>显然第二种方式安全性更高，一般用网上银行会这么搞，但是，Dayu服务只需要采用第一种方式就可以。</p>
-<h2 id="SSL证书"><a href="#SSL证书" class="headerlink" title="SSL证书"></a>SSL证书</h2><p>服务器自己的证书必须经过某“权威”证书的签名，而这个“权威”证书又可能经过更权威的证书签名，这么一级一级追溯上去，最顶层那个最权威的证书就称为根证书。根证书直接内置在浏览器中，这样，浏览器就可以利用自己自带的根证书去验证某个服务器的证书是否有效。</p>
-<p>SSL证书级别分为三种类型，域名型SSL证书（DV SSL）、企业型SSL证书（OVSSL）、增强型SSL证书（EVSSL）</p>
-<h3 id="1-域名型-SSL-证书（DV-SSL-Domain-Validation-SSL）"><a href="#1-域名型-SSL-证书（DV-SSL-Domain-Validation-SSL）" class="headerlink" title="1. 域名型 SSL 证书（DV SSL - Domain Validation SSL）"></a>1. 域名型 SSL 证书（DV SSL - Domain Validation SSL）</h3><p>即证书颁布机构只对域名的所有者进行在线检查，通常是验证域名下某个指定文件的内容，或者验证与域名相关的某条 TXT 记录；</p>
-<p>比如访问 [http|https]://<a href="http://www.mimvp.com/.../test.txt，文件内容：" target="_blank" rel="noopener">www.mimvp.com/.../test.txt，文件内容：</a> 2016082xxxxxmimvpcom2016</p>
-<p>或添加一条 TXT 记录：<a href="http://www.mimvp.com" target="_blank" rel="noopener">www.mimvp.com</a> –&gt; TXT –&gt; 20170xxxxxmimvpcom2066</p>
-<h3 id="2-企业型-SSL-证书（OV-SSL-Organization-Validation-SSL）"><a href="#2-企业型-SSL-证书（OV-SSL-Organization-Validation-SSL）" class="headerlink" title="2. 企业型 SSL 证书（OV SSL - Organization Validation SSL）"></a>2. 企业型 SSL 证书（OV SSL - Organization Validation SSL）</h3><p>是要购买者提交组织机构资料和单位授权信等在官方注册的凭证，</p>
-<p>证书颁发机构在签发 SSL 证书前，不仅仅要检验域名所有权，</p>
-<p>还必须对这些资料的真实合法性进行多方查验，只有通过验证的才能颁发 SSL 证书。</p>
-<h3 id="3-增强型-SSL-证书（EV-SSL-Extended-Validation-SSL）"><a href="#3-增强型-SSL-证书（EV-SSL-Extended-Validation-SSL）" class="headerlink" title="3. 增强型 SSL 证书（EV SSL - Extended Validation SSL）"></a>3. 增强型 SSL 证书（EV SSL - Extended Validation SSL）</h3><p>与其他 SSL 证书一样，都是基于 SSL/TLS 安全协议，</p>
-<p>但是验证流程更加具体详细，验证步骤更多，</p>
-<p>这样一来证书所绑定的网站就更加的可靠、可信。</p>
-<p>它跟普通 SSL 证书的区别也是明显的，安全浏览器的地址栏变绿，</p>
-<p>如果是不受信的 SSL 证书则拒绝显示，如果是钓鱼网站，地址栏则会变成红色，以警示用户。</p>
+<h1 id="Synchronized的实现"><a href="#Synchronized的实现" class="headerlink" title="Synchronized的实现"></a>Synchronized的实现</h1><p>在多线程并发编程中synchronized一直是元老级角色，很多人都会称呼它为重量级锁。但是，随着Java SE 1.6对synchronized进行了各种优化之后，有些情况下它就并不那么重了。下面详细介绍Java SE 1.6中为了减少获得锁和释放锁带来的性能消耗而引入的偏向锁和轻量级锁，以及锁的存储结构和升级过程。</p>
+<p>先来看下利用synchronized实现同步的基础：Java中的每一个对象都可以作为锁。具体表现为以下3种形式。</p>
+<ul>
+<li><p><strong>对于普通同步方法，锁是当前实例对象。</strong></p>
+</li>
+<li><p><strong>对于静态同步方法，锁是当前类的Class对象。</strong></p>
+</li>
+<li><p><strong>对于同步方法块，锁是Synchonized括号里配置的对象。</strong></p>
+</li>
+</ul>
+<p>当一个线程试图访问同步代码块时，它首先必须得到锁，退出或抛出异常时必须释放锁。</p>
+<p>从JVM规范中可以看到Synchonized在JVM里的实现原理，JVM基于进入和退出Monitor对象来实现方法同步和代码块同步，但两者的实现细节不一样。代码块同步是使用 <strong>monitorenter</strong> 和<strong>monitorexit</strong> 指令实现的，而方法同步是使用另外一种方式实现的，细节在JVM规范里并没有详细说明。但是，方法的同步同样可以使用这两个指令来实现。</p>
+<p><font color="#dd0000">monitorenter指令是在编译后插入到同步代码块的开始位置，而monitorexit是插入到方法结束处和异常处，JVM要保证每个monitorenter必须有对应的monitorexit与之配对</font>。任何对象都有一个monitor与之关联，当且一个monitor被持有后，它将处于锁定状态。线程执行到monitorenter指令时，将会尝试获取对象所对应的monitor的所有权，即尝试获得对象的锁。</p>
+<h2 id="Java对象头"><a href="#Java对象头" class="headerlink" title="Java对象头"></a>Java对象头</h2><p>synchronized用的锁是存在Java对象头里的。如果对象是数组类型，则虚拟机用3个字宽（Word）存储对象头，如果对象是非数组类型，则用2字宽存储对象头。在32位虚拟机中，1字宽等于4字节，即32bit。</p>
+<p>Java对象头里的Mark Word里默认存储对象的HashCode、分代年龄和锁标记位。32位JVM的Mark Word的默认存储结构如下表所示：</p>
+<p><img src="/images/object_header1.png" alt></p>
+<p>在运行期间，Mark Word里存储的数据会随着锁标志位的变化而变化。Mark Word可能变化为存储以下4种数据，如下表：</p>
+<p><img src="/images/object_header2.png" alt></p>
+<p>在64位虚拟机下，Mark Word是64bit大小的，其存储结构如下表所示：</p>
+<p><img src="/images/object_header3.png" alt></p>
+<h2 id="锁的升级"><a href="#锁的升级" class="headerlink" title="锁的升级"></a>锁的升级</h2><p>Java SE 1.6为了减少获得锁和释放锁带来的性能消耗，引入了“偏向锁”和“轻量级锁”，在Java SE 1.6中，锁一共有4种状态，级别从低到高依次是：<font color="#dd0000"><strong>无锁状态、偏向锁状态、轻量级锁状态和重量级锁状态</strong></font>，这几个状态会随着竞争情况逐渐升级。<strong>锁可以升级但不能降级</strong>，意味着偏向锁升级成轻量级锁后不能降级成偏向锁。这种锁升级却不能降级的策略，目的是为了提高获得锁和释放锁的效率，下文会详细分析。</p>
+<h3 id="偏向锁"><a href="#偏向锁" class="headerlink" title="偏向锁"></a>偏向锁</h3><p>HotSpot的作者经过研究发现，大多数情况下，锁不仅不存在多线程竞争，而且总是由同一线程多次获得，为了让线程获得锁的代价更低而引入了偏向锁。当一个线程访问同步块并获取锁时，会在对象头和栈帧中的锁记录里存储锁偏向的线程ID，<strong>以后该线程在进入和退出同步块时不需要进行CAS操作来加锁和解锁，只需简单地测试一下对象头的Mark Word里是否存储着指向当前线程的偏向锁</strong>。 如果测试成功，表示线程已经获得了锁。如果测试失败，则需要再测试一下Mark Word中偏向锁的标识是否设置成1（表示当前是偏向锁）：如果没有设置，则使用CAS竞争锁；如果设置了，则尝试使用CAS将对象头的偏向锁指向当前线程。</p>
+<p><strong>(1) 偏向锁的撤销</strong></p>
+<p>偏向锁使用了一种 <u><strong>等到竞争出现才释放锁</strong></u> 的机制，所以当其他线程尝试竞争偏向锁时，持有偏向锁的线程才会释放锁。</p>
+<p>偏向锁的撤销，需要等待全局安全点（在这个时间点上没有正在执行的字节码）。</p>
+<ul>
+<li><p>它会首先暂停拥有偏向锁的线程，然后检查持有偏向锁的线程是否活着;</p>
+</li>
+<li><p>如果线程不处于活动状态，则将对象头设置成无锁状态；</p>
+</li>
+<li><p>如果线程仍然活着，拥有偏向锁的栈会被执行，遍历偏向对象的锁记录，栈中的锁记录和对象头的Mark Word要么重新偏向于其他线程，要么恢复到无锁或者标记对象不适合作为偏向锁，最后唤醒暂停的线程。</p>
+</li>
+</ul>
+<p>下图中的线程1演示了偏向锁初始化的流程，线程2演示了偏向锁撤销的流程。</p>
+<p><img src="/images/partiality_lock.jpg" alt></p>
+<p><strong>(2) 关闭偏向锁</strong></p>
+<p>偏向锁在Java 6和Java 7里是默认启用的，但是它在应用程序启动几秒钟之后才激活，如有必要可以使用JVM参数来关闭延迟：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-XX:BiasedLockingStartupDelay=0</span><br></pre></td></tr></table></figure>
+
+<p>如果你确定应用程序里所有的锁通常情况下处于竞争状态，可以通过JVM参数关闭偏向锁：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-XX:-UseBiasedLocking=false</span><br></pre></td></tr></table></figure>
+
+<p>那么程序默认会进入轻量级锁状态。 </p>
+<h3 id="轻量级锁"><a href="#轻量级锁" class="headerlink" title="轻量级锁"></a>轻量级锁</h3><p><strong>（1）轻量级锁加锁</strong></p>
+<p>线程在执行同步块之前，JVM会先在当前线程的栈桢中创建用于存储锁记录的空间，并 <font color="#dd0000"><strong>将对象头中的Mark Word复制到锁记录中</strong></font>，官方称 <strong>为Displaced Mark Word</strong> 。然后线程尝试 <font color="#dd0000"><strong>使用CAS将对象头中的Mark Word替换为指向锁记录的指针</strong></font>。 如果成功，当前线程获得锁，如果失败，表示其他线程竞争锁，当前线程便尝试使用自旋来获取锁。</p>
+<p><strong>（2）轻量级锁解锁</strong></p>
+<p>轻量级解锁时，会 <font color="#dd0000"><strong>使用原子的CAS操作将Displaced Mark Word替换回到对象头</strong></font>，如果成功，则表示没有竞争发生。<strong>如果失败，表示当前锁存在竞争，锁就会膨胀成重量级锁</strong>。下图是两个线程同时争夺锁，导致锁膨胀的流程图。</p>
+<p><img src="/images/lock_upgrade.jpg" alt></p>
+<p>因为自旋会消耗CPU，<strong>为了避免无用的自旋（比如获得锁的线程被阻塞住了），一旦锁升级成重量级锁，就不会再恢复到轻量级锁状态</strong>。当锁处于这个状态下，其他线程试图获取锁时，都会被阻塞住，当持有锁的线程释放锁之后会唤醒这些线程，被唤醒的线程就会进行新一轮的夺锁之争。</p>
+<h3 id="锁的对比"><a href="#锁的对比" class="headerlink" title="锁的对比"></a>锁的对比</h3><table>
+<thead>
+<tr>
+<th>锁</th>
+<th>优点</th>
+<th>缺点</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>无锁</td>
+<td>高性能</td>
+<td></td>
+<td>基本上无并发，不存在线程竞争</td>
+</tr>
+<tr>
+<td>偏向锁</td>
+<td>加锁解锁不需要额外消耗，和执行非同步方法相比仅存在纳秒级差距</td>
+<td>若线程间存在锁竞争，会带来额外的锁撤销消耗</td>
+<td>只有一个线程访问的同步块场景</td>
+</tr>
+<tr>
+<td>轻量级锁</td>
+<td>竞争的线程一直自旋不会阻塞，提高了程序响应速度</td>
+<td>未得到锁的线程自旋消耗CPU</td>
+<td>追求响应时间，同步块执行速度非常快</td>
+</tr>
+<tr>
+<td>重量级锁</td>
+<td>线程竞争不使用自旋，不消耗CPU</td>
+<td>线程竞争会直接阻塞，进入内核态，响应时间慢</td>
+<td>追求吞吐量，同步块执行时间较长</td>
+</tr>
+</tbody></table>
+<h1 id="Volatile-vs-Synchronize"><a href="#Volatile-vs-Synchronize" class="headerlink" title="Volatile vs Synchronize"></a>Volatile vs Synchronize</h1><ol>
+<li><p>volatile仅能使用在变量级别；synchronized则可以使用在变量、方法、和类级别的;</p>
+</li>
+<li><p>volatile仅能实现变量的修改可见性，并不能保证原子性；synchronized则可以保证变量的修改可见性和原子性;</p>
+</li>
+<li><p>volatile不会造成线程的阻塞; synchronized可能会造成线程的阻塞。</p>
+</li>
+<li><p>volatile标记的变量不会被编译器优化(禁止指令重排)；synchronized标记的变量可以被编译器优化</p>
+</li>
+<li><p>volatile本质是在告诉jvm当前变量在寄存器（工作内存）中的值是不确定的，需要从主存中读取； synchronized则是锁定当前变量，只有当前线程可以访问该变量，其他线程被阻塞住。</p>
+</li>
+</ol>
 <blockquote>
-<p>证书获取在此就不详细介绍了</p>
+<p>本文主要摘抄于 《Java并发编程的艺术》（第二章） 只作为个人读书记录。</p>
 </blockquote>
-<h2 id="自签名证书生成"><a href="#自签名证书生成" class="headerlink" title="自签名证书生成"></a>自签名证书生成</h2><p>下面简单介绍如何创建一个自签名的SSL证书。执行脚本create_cert.sh即可。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 生成秘钥key</span></span><br><span class="line"><span class="comment">## 会有两次要求输入密码,输入同一个即可,</span></span><br><span class="line"><span class="comment">## 然后你就获得了一个server.key文件.</span></span><br><span class="line">openssl genrsa -des3 -out server.key 2048</span><br><span class="line"></span><br><span class="line"><span class="comment">## 以后使用此文件(通过openssl提供的命令或API)可能经常回要求输入密码</span></span><br><span class="line"><span class="comment">## 如果想去除输入密码的步骤可以使用以下命令:</span></span><br><span class="line">openssl rsa -<span class="keyword">in</span> server.key -out server.key</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">## 创建服务器证书的申请文件server.csr</span></span><br><span class="line"><span class="comment">## 其中Country Name填CN,Common Name填主机名也可以不填,如果不填浏览器会认为不安全.</span></span><br><span class="line"><span class="comment">## (例如你以后的url为https://abcd/xxxx....这里就可以填abcd),其他的都可以不填.</span></span><br><span class="line">openssl req -new -key server.key -out server.csr</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">## 创建CA证书</span></span><br><span class="line"><span class="comment">## 此时,你可以得到一个ca.crt的证书,这个证书用来给自己的证书签名.</span></span><br><span class="line">openssl req -new -x509 -key server.key -out ca.crt -days 3650</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">## 创建自当前日期起有效期为期十年的服务器证书server.crt</span></span><br><span class="line">openssl x509 -req -days 3650 -<span class="keyword">in</span> server.csr -CA ca.crt -CAkey server.key -CAcreateserial -out server.crt</span><br></pre></td></tr></table></figure>
 
-<p>其中第三条指令在第二步第二条时会出来一个填写资料的界面（我已经填好参考，有些地方可以空着）</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Country Name (2 letter code) [AU]:CN</span><br><span class="line">State or Province Name (full name) [Some-State]:BEIJING</span><br><span class="line">Locality Name (eg, city) []:haidian</span><br><span class="line">Organization Name (eg, company) [Internet Widgits Pty Ltd]:Baidu</span><br><span class="line">Organizational Unit Name (eg, section) []:</span><br><span class="line">Common Name (e.g. server FQDN or YOUR name) []:localhost</span><br><span class="line">Email Address []:</span><br></pre></td></tr></table></figure>
-
-<p>这里有点要注意， <code>Common Name (e.g. server FQDN or YOUR name) []</code>: 这一项，是最后可以访问的域名，我这里为了方便测试，写成 localhost ，如果是为了给网站生成证书，需要写成 xxxx.com 。</p>
-<p>脚本执行完成后，ls你的文件夹,可以看到一共生成了5个文件:<br><code>ca.crt ca.srl server.crt server.csr server.key</code><br>其中,<code>server.crt</code>和<code>server.key</code>就是你的nginx需要的证书文件.</p>
-<h2 id="配置nginx"><a href="#配置nginx" class="headerlink" title="配置nginx"></a>配置nginx</h2><h3 id="1-查看nginx是否安装了ssl模块"><a href="#1-查看nginx是否安装了ssl模块" class="headerlink" title="(1) 查看nginx是否安装了ssl模块"></a>(1) 查看nginx是否安装了ssl模块</h3><blockquote>
-<p>nginx -V</p>
-</blockquote>
-<p><img src="/images/nginx-version.jpg" alt="nginx version"></p>
-<p>又红框中标记内容，则表示已经安装了ssl模块，否则需要手动安装或是更换nginx版本。</p>
-<p>###（2）配置nginx</p>
-<p>将之前生成的密钥及证书文件<code>server.crt</code>和<code>server.key</code>拷贝到nginx配置文件nginx.conf同级目录，然后修改nginx.conf.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"># HTTPS server</span><br><span class="line">server &#123;</span><br><span class="line">    listen       443 ssl;</span><br><span class="line">    server_name  localhost;  # 域名</span><br><span class="line"></span><br><span class="line">    ssl_certificate      server.crt;</span><br><span class="line">    ssl_certificate_key  server.key;</span><br><span class="line"></span><br><span class="line">    ssl_session_cache    shared:SSL:10m;</span><br><span class="line">    ssl_session_timeout  10m;</span><br><span class="line"></span><br><span class="line">    ssl_ciphers  HIGH:!aNULL:!MD5;</span><br><span class="line">    ssl_prefer_server_ciphers  on; </span><br><span class="line"></span><br><span class="line">    location / &#123; </span><br><span class="line">        root /home/bigdata/dayu/www/;</span><br><span class="line">        index index.html;</span><br><span class="line">        proxy_set_header  Host $http_host;</span><br><span class="line">        rewrite (.*) /index.html break;</span><br><span class="line">    &#125;   </span><br><span class="line"></span><br><span class="line">    location /public/ &#123;</span><br><span class="line">        root /home/bigdata/dayu/www; </span><br><span class="line">    &#125;   </span><br><span class="line"></span><br><span class="line">    location /metamap/ &#123;</span><br><span class="line">        proxy_pass http://127.0.0.1:8083/;</span><br><span class="line">        proxy_redirect /metamap/ http://127.0.0.1:8083/;</span><br><span class="line">        proxy_set_header  Host $http_host;</span><br><span class="line">    &#125;   </span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    location /bflow/ &#123;</span><br><span class="line">        proxy_pass http://127.0.0.1:8084/;</span><br><span class="line">        proxy_redirect /workflow/ http://127.0.0.1:8084/;</span><br><span class="line">        proxy_set_header  Host $http_host;</span><br><span class="line">    &#125;   </span><br><span class="line"></span><br><span class="line">    location /authenticate/ &#123;</span><br><span class="line">        proxy_pass http://cp01-mxnet-test.epc.baidu.com:8010/;</span><br><span class="line">        proxy_redirect /authenticate/ http://127.0.0.1:8082/;</span><br><span class="line">        proxy_set_header Host $http_host;</span><br><span class="line">    &#125;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
       
     </div>
     
@@ -483,9 +602,13 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Nginx/" rel="tag"><i class="fa fa-tag"></i> Nginx</a>
+            <a href="/tags/多线程/" rel="tag"><i class="fa fa-tag"></i> 多线程</a>
           
-            <a href="/tags/Https/" rel="tag"><i class="fa fa-tag"></i> Https</a>
+            <a href="/tags/Java/" rel="tag"><i class="fa fa-tag"></i> Java</a>
+          
+            <a href="/tags/Synchronization/" rel="tag"><i class="fa fa-tag"></i> Synchronization</a>
+          
+            <a href="/tags/Volatile/" rel="tag"><i class="fa fa-tag"></i> Volatile</a>
           
         </div>
       
@@ -498,15 +621,15 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
+              <a href="/2019/08/13/ThreadLocal源码解析/" rel="next" title="ThreadLocal源码解析">
+                <i class="fa fa-chevron-left"></i> ThreadLocal源码解析
+              </a>
+            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2019/07/10/Spring-Boot-过滤器vs拦截器/" rel="prev" title="[Spring-Boot]过滤器vs拦截器">
-                [Spring-Boot]过滤器vs拦截器 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -685,7 +808,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Https配置"><span class="nav-number">1.</span> <span class="nav-text">Https配置</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SSL证书"><span class="nav-number">1.2.</span> <span class="nav-text">SSL证书</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-域名型-SSL-证书（DV-SSL-Domain-Validation-SSL）"><span class="nav-number">1.2.1.</span> <span class="nav-text">1. 域名型 SSL 证书（DV SSL - Domain Validation SSL）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-企业型-SSL-证书（OV-SSL-Organization-Validation-SSL）"><span class="nav-number">1.2.2.</span> <span class="nav-text">2. 企业型 SSL 证书（OV SSL - Organization Validation SSL）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-增强型-SSL-证书（EV-SSL-Extended-Validation-SSL）"><span class="nav-number">1.2.3.</span> <span class="nav-text">3. 增强型 SSL 证书（EV SSL - Extended Validation SSL）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自签名证书生成"><span class="nav-number">1.3.</span> <span class="nav-text">自签名证书生成</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置nginx"><span class="nav-number">1.4.</span> <span class="nav-text">配置nginx</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-查看nginx是否安装了ssl模块"><span class="nav-number">1.4.1.</span> <span class="nav-text">(1) 查看nginx是否安装了ssl模块</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#并发编程的三大概念"><span class="nav-number">1.</span> <span class="nav-text">并发编程的三大概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#可见性"><span class="nav-number">1.1.</span> <span class="nav-text">可见性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#原子性"><span class="nav-number">1.2.</span> <span class="nav-text">原子性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#有序性"><span class="nav-number">1.3.</span> <span class="nav-text">有序性</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Java内存模型"><span class="nav-number">2.</span> <span class="nav-text">Java内存模型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Volatile的定义与实现原理"><span class="nav-number">3.</span> <span class="nav-text">Volatile的定义与实现原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Synchronized的实现"><span class="nav-number">4.</span> <span class="nav-text">Synchronized的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Java对象头"><span class="nav-number">4.1.</span> <span class="nav-text">Java对象头</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#锁的升级"><span class="nav-number">4.2.</span> <span class="nav-text">锁的升级</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#偏向锁"><span class="nav-number">4.2.1.</span> <span class="nav-text">偏向锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#轻量级锁"><span class="nav-number">4.2.2.</span> <span class="nav-text">轻量级锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#锁的对比"><span class="nav-number">4.2.3.</span> <span class="nav-text">锁的对比</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Volatile-vs-Synchronize"><span class="nav-number">5.</span> <span class="nav-text">Volatile vs Synchronize</span></a></li></ol></div>
             
 
           </div>
