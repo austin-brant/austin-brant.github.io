@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Mysql,工具,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Austin Brant" type="application/atom+xml">
+
+
+
+
+
+
+<meta name="description" content="Explain简介MySQL 提供了一个 EXPLAIN 命令, 它可以对 SELECT 语句进行分析, 并输出 SELECT 执行的详细信息, 以供开发人员针对性优化. EXPLAIN 命令用法十分简单, 在 SELECT 语句前加上 Explain 就可以了, 例如: 1EXPLAIN SELECT * from user_info WHERE id &amp;lt; 300;  数据准备123456">
+<meta name="keywords" content="Mysql,工具">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mysql性能分析工具">
+<meta property="og:url" content="http://yoursite.com/2019/10/09/Mysql性能分析工具/index.html">
+<meta property="og:site_name" content="Austin Brant">
+<meta property="og:description" content="Explain简介MySQL 提供了一个 EXPLAIN 命令, 它可以对 SELECT 语句进行分析, 并输出 SELECT 执行的详细信息, 以供开发人员针对性优化. EXPLAIN 命令用法十分简单, 在 SELECT 语句前加上 Explain 就可以了, 例如: 1EXPLAIN SELECT * from user_info WHERE id &amp;lt; 300;  数据准备123456">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/mysql_profiling_params.png">
+<meta property="og:updated_time" content="2019-10-09T07:29:07.357Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Mysql性能分析工具">
+<meta name="twitter:description" content="Explain简介MySQL 提供了一个 EXPLAIN 命令, 它可以对 SELECT 语句进行分析, 并输出 SELECT 执行的详细信息, 以供开发人员针对性优化. EXPLAIN 命令用法十分简单, 在 SELECT 语句前加上 Explain 就可以了, 例如: 1EXPLAIN SELECT * from user_info WHERE id &amp;lt; 300;  数据准备123456">
+<meta name="twitter:image" content="http://yoursite.com/images/mysql_profiling_params.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/10/09/Mysql性能分析工具/">
+
+
+
+
+
+  <title>Mysql性能分析工具 | Austin Brant</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Austin Brant</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/09/Mysql性能分析工具/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Austin Brant">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Austin Brant">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Mysql性能分析工具</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-09T14:47:36+08:00">
+                2019-10-09
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2019-10-09T15:29:07+08:00">
+                2019-10-09
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Mysql/" itemprop="url" rel="index">
+                    <span itemprop="name">Mysql</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Mysql/性能/" itemprop="url" rel="index">
+                    <span itemprop="name">性能</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  4.5k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  21
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Explain"><a href="#Explain" class="headerlink" title="Explain"></a>Explain</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>MySQL 提供了一个 EXPLAIN 命令, 它可以对 <font color="red"><strong>SELECT</strong></font> 语句进行分析, 并输出 <font color="red"><strong>SELECT</strong></font> 执行的详细信息, 以供开发人员针对性优化.</p>
+<p>EXPLAIN 命令用法十分简单, 在 SELECT 语句前加上 Explain 就可以了, 例如:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">EXPLAIN</span> <span class="keyword">SELECT</span> * <span class="keyword">from</span> user_info <span class="keyword">WHERE</span> <span class="keyword">id</span> &lt; <span class="number">300</span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="数据准备"><a href="#数据准备" class="headerlink" title="数据准备"></a>数据准备</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE `user_info` (</span><br><span class="line">  `id` bigint(20) NOT NULL AUTO_INCREMENT,</span><br><span class="line">  `name` varchar(50) NOT NULL DEFAULT &apos;&apos;,</span><br><span class="line">  `age` int(11) DEFAULT NULL,</span><br><span class="line">  PRIMARY KEY (`id`),</span><br><span class="line">  KEY `name_index` (`name`)</span><br><span class="line">) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;</span><br><span class="line"></span><br><span class="line">INSERT INTO user_info (name, age) VALUES (&apos;xys&apos;, 20);</span><br><span class="line">INSERT INTO user_info (name, age) VALUES (&apos;a&apos;, 21);</span><br><span class="line">INSERT INTO user_info (name, age) VALUES (&apos;b&apos;, 23);</span><br><span class="line">INSERT INTO user_info (name, age) VALUES (&apos;c&apos;, 50);</span><br><span class="line">INSERT INTO user_info (name, age) VALUES (&apos;d&apos;, 15);</span><br><span class="line">INSERT INTO user_info (name, age) VALUES (&apos;e&apos;, 20);</span><br><span class="line">INSERT INTO user_info (name, age) VALUES (&apos;f&apos;, 21);</span><br><span class="line">INSERT INTO user_info (name, age) VALUES (&apos;g&apos;, 23);</span><br><span class="line">INSERT INTO user_info (name, age) VALUES (&apos;h&apos;, 50);</span><br><span class="line">INSERT INTO user_info (name, age) VALUES (&apos;i&apos;, 15);</span><br><span class="line"></span><br><span class="line">CREATE TABLE `order_info` (</span><br><span class="line">  `id` bigint(20) NOT NULL AUTO_INCREMENT,</span><br><span class="line">  `user_id` bigint(20) DEFAULT NULL,</span><br><span class="line">  `product_name` varchar(50) NOT NULL DEFAULT &apos;&apos;,</span><br><span class="line">  `productor` varchar(30) DEFAULT NULL,</span><br><span class="line">  PRIMARY KEY (`id`),</span><br><span class="line">  KEY `user_product_detail_index` (`user_id`,`product_name`,`productor`)</span><br><span class="line">) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;</span><br><span class="line"></span><br><span class="line">INSERT INTO order_info (user_id, product_name, productor) VALUES (1, &apos;p1&apos;, &apos;WHH&apos;);</span><br><span class="line">INSERT INTO order_info (user_id, product_name, productor) VALUES (1, &apos;p2&apos;, &apos;WL&apos;);</span><br><span class="line">INSERT INTO order_info (user_id, product_name, productor) VALUES (1, &apos;p1&apos;, &apos;DX&apos;);</span><br><span class="line">INSERT INTO order_info (user_id, product_name, productor) VALUES (2, &apos;p1&apos;, &apos;WHH&apos;);</span><br><span class="line">INSERT INTO order_info (user_id, product_name, productor) VALUES (2, &apos;p5&apos;, &apos;WL&apos;);</span><br><span class="line">INSERT INTO order_info (user_id, product_name, productor) VALUES (3, &apos;p3&apos;, &apos;MA&apos;);</span><br><span class="line">INSERT INTO order_info (user_id, product_name, productor) VALUES (4, &apos;p1&apos;, &apos;WHH&apos;);</span><br><span class="line">INSERT INTO order_info (user_id, product_name, productor) VALUES (6, &apos;p1&apos;, &apos;WHH&apos;);</span><br><span class="line">INSERT INTO order_info (user_id, product_name, productor) VALUES (9, &apos;p8&apos;, &apos;TE&apos;);</span><br></pre></td></tr></table></figure>
+
+<h2 id="EXPLAIN-输出格式"><a href="#EXPLAIN-输出格式" class="headerlink" title="EXPLAIN 输出格式"></a>EXPLAIN 输出格式</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; explain select * from user_info where id = 2;</span><br><span class="line">+<span class="comment">----+-------------+-----------+-------+---------------+---------+---------+-------+------+-------+</span></span><br><span class="line">| id | select_type | table     | type  | possible_keys | key     | key_len | ref   | rows | Extra |</span><br><span class="line">+<span class="comment">----+-------------+-----------+-------+---------------+---------+---------+-------+------+-------+</span></span><br><span class="line">|  1 | SIMPLE      | user_info | const | PRIMARY       | PRIMARY | 8       | const |    1 |       |</span><br><span class="line">+<span class="comment">----+-------------+-----------+-------+---------------+---------+---------+-------+------+-------+</span></span><br><span class="line">1 row in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+
+<p>各列的含义如下:</p>
+<ul>
+<li><p><strong>id</strong>: SELECT 查询的标识符. 每个 SELECT 都会自动分配一个唯一的标识符.</p>
+</li>
+<li><p><strong>select_type</strong>: SELECT 查询的类型.</p>
+</li>
+<li><p><strong>table</strong>: 表示查询涉及的表或衍生表</p>
+</li>
+<li><p><em>partitions</em>: 匹配的分区</p>
+</li>
+<li><p><strong>type</strong>: join 类型</p>
+</li>
+<li><p><strong>possible_keys</strong>: 表示 MySQL 在查询时, 能够使用到的索引. 注意, 即使有些索引在 possible_keys 中出现, 但是并不表示此索引会真正地被 MySQL 使用到. MySQL 在查询时具体使用了哪些索引, 由 key 字段决定.</p>
+</li>
+<li><p><strong>key</strong>: 此次查询中真正使用到的索引.</p>
+</li>
+<li><p><strong>ref</strong>: 哪个字段或常数与 key 一起被使用</p>
+</li>
+<li><p><strong>rows</strong>: MySQL查询优化器根据统计信息, 估算SQL要查找到结果集需要扫描读取的数据行数.<br>这个值非常直观显示 SQL 的效率好坏, 原则上 rows 越少越好.</p>
+</li>
+<li><p><em>filtered</em>: 表示此查询条件所过滤的数据的百分比</p>
+</li>
+<li><p><strong>extra</strong>: 额外的信息</p>
+</li>
+</ul>
+<h2 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h2><h3 id="select-type"><a href="#select-type" class="headerlink" title="select_type"></a>select_type</h3><p>select_type 表示了查询的类型, 它的常用取值有:</p>
+<ul>
+<li><p>SIMPLE, 表示此查询不包含 UNION 查询或子查询</p>
+</li>
+<li><p>PRIMARY, 表示此查询是最外层的查询</p>
+</li>
+<li><p>UNION, 表示此查询是 UNION 的第二个或随后的查询</p>
+</li>
+<li><p>DEPENDENT UNION, UNION 中的第二个或后面的查询语句, 取决于外面的查询</p>
+</li>
+<li><p>UNION RESULT, UNION 的结果</p>
+</li>
+<li><p>SUBQUERY, 子查询中的第一个 SELECT</p>
+</li>
+<li><p>DEPENDENT SUBQUERY: 子查询中的第一个 SELECT, 取决于外面的查询. 即子查询依赖于外层查询的结果.</p>
+</li>
+</ul>
+<p>最常见的查询类别应该是 SIMPLE 了, 比如当我们的查询没有子查询, 也没有 UNION 查询时, 那么通常就是 SIMPLE 类型, 例如:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; explain select * from user_info where id = 2;</span><br><span class="line">+<span class="comment">----+-------------+-----------+-------+---------------+---------+---------+-------+------+-------+</span></span><br><span class="line">| id | select_type | table     | type  | possible_keys | key     | key_len | ref   | rows | Extra |</span><br><span class="line">+<span class="comment">----+-------------+-----------+-------+---------------+---------+---------+-------+------+-------+</span></span><br><span class="line">|  1 | SIMPLE      | user_info | const | PRIMARY       | PRIMARY | 8       | const |    1 |       |</span><br><span class="line">+<span class="comment">----+-------------+-----------+-------+---------------+---------+---------+-------+------+-------+</span></span><br><span class="line">1 row in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+
+<p>如果我们使用了 UNION 查询, 那么 EXPLAIN 输出 的结果类似如下:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; EXPLAIN (SELECT * FROM user_info  WHERE id IN (1, 2, 3)) UNION (SELECT * FROM user_info WHERE id IN (3, 4, 5));</span><br><span class="line">+<span class="comment">----+--------------+------------+-------+---------------+---------+---------+------+------+-------------+</span></span><br><span class="line">| id | select_type  | table      | type  | possible_keys | key     | key_len | ref  | rows | Extra       |</span><br><span class="line">+<span class="comment">----+--------------+------------+-------+---------------+---------+---------+------+------+-------------+</span></span><br><span class="line">|  1 | PRIMARY      | user_info  | range | PRIMARY       | PRIMARY | 8       | NULL |    3 | Using where |</span><br><span class="line">|  2 | UNION        | user_info  | range | PRIMARY       | PRIMARY | 8       | NULL |    3 | Using where |</span><br><span class="line">| NULL | UNION RESULT | &lt;union1,2&gt; | ALL   | NULL   | NULL    | NULL    | NULL | NULL   |             |</span><br><span class="line">+<span class="comment">----+--------------+------------+-------+---------------+---------+---------+------+------+-------------+</span></span><br><span class="line">3 rows in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+
+<h3 id="type"><a href="#type" class="headerlink" title="type"></a>type</h3><p>type 字段比较重要, 它提供了判断查询是否高效的重要依据依据. 通过 type 字段, 我们判断此次查询是 <strong>全表扫描</strong> 还是 <strong>索引扫描</strong> 等.</p>
+<p>type 常用类型取值有:</p>
+<ul>
+<li><p><strong>system</strong>: 表中只有一条数据. 这个类型是特殊的 const 类型.</p>
+</li>
+<li><p><strong>const</strong>: 针对主键或唯一索引的等值查询扫描, 最多只返回一行数据. const 查询速度非常快, 因为它仅仅读取一次即可.<br>例如下面的这个查询, 它使用了主键索引, 因此 type 就是 const 类型的.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; explain select * from user_info where id = 2;</span><br><span class="line">+<span class="comment">----+-------------+-----------+-------+---------------+---------+---------+-------+------+-------+</span></span><br><span class="line">| id | select_type | table     | type  | possible_keys | key     | key_len | ref   | rows | Extra |</span><br><span class="line">+<span class="comment">----+-------------+-----------+-------+---------------+---------+---------+-------+------+-------+</span></span><br><span class="line">|  1 | SIMPLE      | user_info | const | PRIMARY       | PRIMARY | 8       | const |    1 |       |</span><br><span class="line">+<span class="comment">----+-------------+-----------+-------+---------------+---------+---------+-------+------+-------+</span></span><br><span class="line">1 row in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>eq_ref</strong>: 此类型通常出现在多表的 join 查询, 表示对于前表的每一个结果, 都只能匹配到后表的一行结果. 并且查询的比较操作通常是 =, 查询效率较高. 例如:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; EXPLAIN SELECT * FROM user_info, order_info WHERE user_info.id = order_info.user_id;</span><br><span class="line">+<span class="comment">----+-------------+------------+--------+---------------------------+---------------------------+---------+-------------------------+------+-------------+</span></span><br><span class="line">| id | select_type | table      | type   | possible_keys             | key                       | key_len | ref                     | rows | Extra       |</span><br><span class="line">+<span class="comment">----+-------------+------------+--------+---------------------------+---------------------------+---------+-------------------------+------+-------------+</span></span><br><span class="line">|  1 | SIMPLE      | order_info | index  | user_product_detail_index | user_product_detail_index | 254     | NULL                    |    9 | Using index |</span><br><span class="line">|  1 | SIMPLE      | user_info  | eq_ref | PRIMARY                   | PRIMARY                   | 8       | test.order_info.user_id |    1 |             |</span><br><span class="line">+<span class="comment">----+-------------+------------+--------+---------------------------+---------------------------+---------+-------------------------+------+-------------+</span></span><br><span class="line">2 rows in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>ref</strong>: 此类型通常出现在多表的 join 查询, 针对于非唯一或非主键索引, 或者是使用了 <strong>最左前缀</strong> 规则索引的查询.<br>例如下面这个例子中, 就使用到了 ref 类型的查询:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; EXPLAIN SELECT * FROM user_info, order_info WHERE user_info.id = order_info.user_id AND order_info.user_id = 5; </span><br><span class="line">+<span class="comment">----+-------------+------------+-------+---------------------------+---------------------------+---------+-------+------+--------------------------+</span></span><br><span class="line">| id | select_type | table      | type  | possible_keys             | key                       | key_len | ref   | rows | Extra                    |</span><br><span class="line">+<span class="comment">----+-------------+------------+-------+---------------------------+---------------------------+---------+-------+------+--------------------------+</span></span><br><span class="line">|  1 | SIMPLE      | user_info  | const | PRIMARY                   | PRIMARY                   | 8       | const |    1 |                          |</span><br><span class="line">|  1 | SIMPLE      | order_info | ref   | user_product_detail_index | user_product_detail_index | 9       | const |    1 | Using where; Using index |</span><br><span class="line">+<span class="comment">----+-------------+------------+-------+---------------------------+---------------------------+---------+-------+------+--------------------------+</span></span><br><span class="line">2 rows in <span class="keyword">set</span> (<span class="number">0.01</span> sec)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>range</strong>: 表示使用索引范围查询, 通过索引字段范围获取表中部分数据记录. 这个类型通常出现在 =, &lt;&gt;, &gt;, &gt;=, &lt;, &lt;=, IS NULL, &lt;=&gt;, BETWEEN, IN() 操作中.</p>
+<p>  当 type 是 range 时, 那么 EXPLAIN 输出的 ref 字段为 NULL, 并且 key_len 字段是此次查询中使用到的索引的最长的那个.</p>
+  <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">    mysql&gt; EXPLAIN SELECT * FROM user_info WHERE id BETWEEN 2 AND 8;</span><br><span class="line">+<span class="comment">----+-------------+-----------+-------+---------------+---------+---------+------+------+-------------+</span></span><br><span class="line">| id | select_type | table     | type  | possible_keys | key     | key_len | ref  | rows | Extra       |</span><br><span class="line">+<span class="comment">----+-------------+-----------+-------+---------------+---------+---------+------+------+-------------+</span></span><br><span class="line">|  1 | SIMPLE      | user_info | range | PRIMARY       | PRIMARY | 8       | NULL |    7 | Using where |</span><br><span class="line">+<span class="comment">----+-------------+-----------+-------+---------------+---------+---------+------+------+-------------+</span></span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ul>
+<ul>
+<li><p><strong>index</strong>: 表示全索引扫描(full index scan), 和 ALL 类型类似, 只不过 ALL 类型是全表扫描, 而 index 类型则仅仅扫描所有的索引, 而不扫描数据.</p>
+<p>  index 类型通常出现在: 所要查询的数据直接在索引树中就可以获取到, 而不需要扫描数据. 当是这种情况时, Extra 字段 会显示 <strong>Using index</strong>.例如:</p>
+  <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">    mysql&gt; EXPLAIN SELECT name FROM  user_info;</span><br><span class="line">+<span class="comment">----+-------------+-----------+-------+---------------+------------+---------+------+------+-------------+</span></span><br><span class="line">| id | select_type | table     | type  | possible_keys | key        | key_len | ref  | rows | Extra       |</span><br><span class="line">+<span class="comment">----+-------------+-----------+-------+---------------+------------+---------+------+------+-------------+</span></span><br><span class="line">|  1 | SIMPLE      | user_info | index | NULL          | name_index | 152     | NULL |   10 | Using index |</span><br><span class="line">+<span class="comment">----+-------------+-----------+-------+---------------+------------+---------+------+------+-------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>  上面的例子中, 我们查询的 name 字段恰好是一个索引, 因此我们直接从索引中获取数据就可以满足查询的需求了, 而不需要查询表中的数据. 因此这样的情况下, type 的值是 index, 并且 Extra 的值是 Using index.</p>
+</li>
+<li><p><strong>ALL</strong>: 表示全表扫描, 这个类型的查询是性能最差的查询之一. 通常来说, 我们的查询不应该出现 ALL 类型的查询, 因为这样的查询在数据量大的情况下, 对数据库的性能是巨大的灾难. 如一个查询是 ALL 类型查询, 那么一般来说可以对相应的字段添加索引来避免.</p>
+<p>  下面是一个全表扫描的例子, 可以看到, 在全表扫描时, possible_keys 和 key 字段都是 NULL, 表示没有使用到索引, 并且 rows 十分巨大, 因此整个查询效率是十分低下的.</p>
+  <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">    mysql&gt; EXPLAIN SELECT age FROM  user_info WHERE age = 20;</span><br><span class="line">+<span class="comment">----+-------------+-----------+------+---------------+------+---------+------+------+-------------+</span></span><br><span class="line">| id | select_type | table     | type | possible_keys | key  | key_len | ref  | rows | Extra       |</span><br><span class="line">+<span class="comment">----+-------------+-----------+------+---------------+------+---------+------+------+-------------+</span></span><br><span class="line">|  1 | SIMPLE      | user_info | ALL  | NULL          | NULL | NULL    | NULL |   10 | Using where |</span><br><span class="line">+<span class="comment">----+-------------+-----------+------+---------------+------+---------+------+------+-------------+</span></span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ul>
+<p><strong>type 类型的性能比较</strong></p>
+<p>通常来说, 不同的 type 类型的性能关系如下:</p>
+<blockquote>
+<p>ALL &lt; index &lt; range ~ index_merge &lt; ref &lt; eq_ref &lt; const &lt; system</p>
+</blockquote>
+<p>ALL 类型因为是全表扫描, 因此在相同的查询条件下, 它是速度最慢的.</p>
+<p>而 index 类型的查询虽然不是全表扫描, 但是它扫描了所有的索引, 因此比 ALL 类型的稍快.</p>
+<p>后面的几种类型都是利用了索引来查询数据, 因此可以过滤部分或大部分数据, 因此查询效率就比较高了.</p>
+<h3 id="key-len"><a href="#key-len" class="headerlink" title="key_len"></a>key_len</h3><p>表示查询优化器使用了索引的字节数. 这个字段可以评估组合索引是否完全被使用, 或只有最左部分字段被使用到.<br>key_len 的计算规则如下:</p>
+<ul>
+<li><p>字符串</p>
+<ul>
+<li><p>char(n): n字节长度</p>
+</li>
+<li><p>varchar(n): 如果是 utf8 编码, 则是 (3n + 2) 字节; 如果是 utf8mb4 编码, 则是 (4n + 2） 字节.</p>
+</li>
+</ul>
+</li>
+<li><p>数值类型:</p>
+<ul>
+<li><p>TINYINT: 1字节</p>
+</li>
+<li><p>SMALLINT: 2字节</p>
+</li>
+<li><p>MEDIUMINT: 3字节</p>
+</li>
+<li><p>INT: 4字节</p>
+</li>
+<li><p>BIGINT: 8字节</p>
+</li>
+</ul>
+</li>
+<li><p>时间类型</p>
+<ul>
+<li><p>DATE: 3字节</p>
+</li>
+<li><p>TIMESTAMP: 4字节</p>
+</li>
+<li><p>DATETIME: 8字节</p>
+</li>
+</ul>
+</li>
+<li><p>字段属性: NULL 属性 占用一个字节. 如果一个字段是 NOT NULL 的, 则没有此属性.</p>
+</li>
+</ul>
+<p>我们来举两个简单的例子:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; EXPLAIN SELECT * FROM order_info WHERE user_id &lt; 3 AND product_name = 'p1' AND productor = 'WHH';</span><br><span class="line">+<span class="comment">----+-------------+------------+-------+---------------------------+---------------------------+---------+------+------+--------------------------+</span></span><br><span class="line">| id | select_type | table      | type  | possible_keys             | key                       | key_len | ref  | rows | Extra                    |</span><br><span class="line">+<span class="comment">----+-------------+------------+-------+---------------------------+---------------------------+---------+------+------+--------------------------+</span></span><br><span class="line">|  1 | SIMPLE      | order_info | range | user_product_detail_index | user_product_detail_index | 9       | NULL |    4 | Using where; Using index |</span><br><span class="line">+<span class="comment">----+-------------+------------+-------+---------------------------+---------------------------+---------+------+------+--------------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>上面的例子是从表 order_info 中查询指定的内容, 而我们从此表的建表语句中可以知道, 表 order_info 有一个联合索引:</p>
+<blockquote>
+<p>KEY <code>user_product_detail_index</code> (<code>user_id</code>, <code>product_name</code>, <code>productor</code>)</p>
+</blockquote>
+<p>不过此查询语句 <code>WHERE user_id &lt; 3 AND product_name = &#39;p1&#39; AND productor = &#39;WHH&#39;</code> 中, 因为先进行 user_id 的范围查询, 而根据 最左前缀匹配 原则, 当遇到范围查询时, 就停止索引的匹配, 因此实际上我们使用到的索引的字段只有 <code>user_id</code>, 因此在 EXPLAIN 中, 显示的 key_len 为 9. </p>
+<p>因为 user_id 字段是 BIGINT, 占用 8 字节, 而 NULL 属性占用一个字节, 因此总共是 9 个字节. 若我们将user_id 字段改为 BIGINT(20) NOT NULL DEFAULT ‘0’, 则 key_length 应该是8.</p>
+<p>上面因为 最左前缀匹配 原则, 我们的查询仅仅使用到了联合索引的 user_id 字段, 因此效率不算高.</p>
+<p>接下来我们来看一下下一个例子:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; EXPLAIN SELECT * FROM order_info WHERE user_id = 1 AND product_name = 'p1';</span><br><span class="line">+<span class="comment">----+-------------+------------+------+---------------------------+---------------------------+---------+-------------+------+--------------------------+</span></span><br><span class="line">| id | select_type | table      | type | possible_keys             | key                       | key_len | ref         | rows | Extra                    |</span><br><span class="line">+<span class="comment">----+-------------+------------+------+---------------------------+---------------------------+---------+-------------+------+--------------------------+</span></span><br><span class="line">|  1 | SIMPLE      | order_info | ref  | user_product_detail_index | user_product_detail_index | 161     | const,const |    2 | Using where; Using index |</span><br><span class="line">+<span class="comment">----+-------------+------------+------+---------------------------+---------------------------+---------+-------------+------+--------------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>这次的查询中, 我们没有使用到范围查询, <code>key_len</code> 的值为 161. 为什么呢? </p>
+<p>因为我们的查询条件 <code>WHERE user_id = 1 AND product_name = &#39;p1&#39;</code> 中, 仅仅使用到了联合索引中的前两个字段, 因此 keyLen(user_id) + keyLen(product_name) = 9 + 50 * 3 + 2 = 161</p>
+<h3 id="Extra"><a href="#Extra" class="headerlink" title="Extra"></a>Extra</h3><p>EXplain 中的很多额外的信息会在 Extra 字段显示, 常见的有以下几种内容:</p>
+<ul>
+<li><p>Using filesort<br>当 Extra 中有 Using filesort 时, 表示 MySQL 需额外的排序操作, 不能通过索引顺序达到排序效果. 一般有 Using filesort, 都建议优化去掉, 因为这样的查询 CPU 资源消耗大.</p>
+<p>  例如下面的例子:</p>
+  <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">    mysql&gt; EXPLAIN SELECT * FROM order_info ORDER BY product_name;</span><br><span class="line">+<span class="comment">----+-------------+------------+-------+---------------+---------------------------+---------+------+------+-----------------------------+</span></span><br><span class="line">| id | select_type | table      | type  | possible_keys | key                       | key_len | ref  | rows | Extra                       |</span><br><span class="line">+<span class="comment">----+-------------+------------+-------+---------------+---------------------------+---------+------+------+-----------------------------+</span></span><br><span class="line">|  1 | SIMPLE      | order_info | index | NULL          | user_product_detail_index | 254     | NULL |    9 | Using index; Using filesort |</span><br><span class="line">+<span class="comment">----+-------------+------------+-------+---------------+---------------------------+---------+------+------+-----------------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>  我们的索引是</p>
+<blockquote>
+<p>KEY <code>user_product_detail_index</code> (<code>user_id</code>, <code>product_name</code>, <code>productor</code>)</p>
+</blockquote>
+<p>  但是上面的查询中根据 <code>product_name</code> 来排序, 因此不能使用索引进行优化, 进而会产生 Using filesort.<br>如果我们将排序依据改为 <code>ORDER BY user_id, product_name</code>, 那么就不会出现 <code>Using filesort</code> 了. 例如:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; EXPLAIN SELECT * FROM order_info ORDER BY user_id, product_name;</span><br><span class="line">+<span class="comment">----+-------------+------------+-------+---------------+---------------------------+---------+------+------+-------------+</span></span><br><span class="line">| id | select_type | table      | type  | possible_keys | key                       | key_len | ref  | rows | Extra       |</span><br><span class="line">+<span class="comment">----+-------------+------------+-------+---------------+---------------------------+---------+------+------+-------------+</span></span><br><span class="line">|  1 | SIMPLE      | order_info | index | NULL          | user_product_detail_index | 254     | NULL |    9 | Using index |</span><br><span class="line">+<span class="comment">----+-------------+------------+-------+---------------+---------------------------+---------+------+------+-------------+</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Using index<br>“覆盖索引扫描”, 表示查询在索引树中就可查找所需数据, 不用扫描表数据文件, 往往说明性能不错</p>
+</li>
+<li><p>Using temporary<br>查询有使用临时表, 一般出现于排序, 分组和多表 join 的情况, 查询效率不高, 建议优化.</p>
+</li>
+</ul>
+<h1 id="Profiling"><a href="#Profiling" class="headerlink" title="Profiling"></a>Profiling</h1><h2 id="简介-1"><a href="#简介-1" class="headerlink" title="简介"></a>简介</h2><p>当我们要对某一条sql的性能进行分析时，可以使用它。</p>
+<p>Profiling是从 mysql5.0.3版本以后才开放的。<br>启动profile之后，<strong>所有查询包括错误的语句</strong>都会记录在内。<br>关闭会话或者set profiling=0 就关闭了。（如果将profiling_history_size参数设置为0，同样具有关闭MySQL的profiling效果。）</p>
+<p>此工具可用来查询SQL执行状态，System lock和Table lock 花多少时间等等，</p>
+<p>对定位一条语句的<strong>I/O、CPU、IPC，Memory</strong>消耗 非常重要。(SQL 语句执行所消耗的最大两部分资源就是IO和CPU)</p>
+<blockquote>
+<p><em>在mysql5.7之后，profile信息将逐渐被废弃，mysql推荐使用performance schema</em></p>
+</blockquote>
+<h2 id="用法"><a href="#用法" class="headerlink" title="用法"></a>用法</h2><p><strong>简易流程大概如下：</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> profiling=<span class="number">1</span>;  	//打开分析，默认值为0（off），可以通过设置profiling为1或ON开启</span><br><span class="line"> </span><br><span class="line">run your sql1;</span><br><span class="line"> </span><br><span class="line">run your sql2;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">show</span> <span class="keyword">profiles</span>;			//查看sql1, sql2的语句分析</span><br><span class="line"> </span><br><span class="line"><span class="keyword">show</span> profile <span class="keyword">for</span> <span class="keyword">query</span> <span class="number">1</span>;	//查看sql1的具体分析</span><br><span class="line"> </span><br><span class="line"><span class="keyword">show</span> profile <span class="keyword">ALL</span> <span class="keyword">for</span> <span class="keyword">query</span> <span class="number">1</span>;	//查看sql1相关的所有分析【主要看i/o与cpu,下边分析中有各项意义介绍】</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span> profiling=<span class="number">0</span>;  		//关闭分析</span><br></pre></td></tr></table></figure>
+
+<p><strong>语法：</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SHOW PROFILE [type [, type] ... ]</span><br><span class="line">   [FOR QUERY n]</span><br><span class="line">   [LIMIT row_count [OFFSET offset]]</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>type:</p>
+<p>ALL | BLOCK IO | CONTEXT SWITCHES | CPU | IPC | MEMORY | PAGE FAULTS | SOURCE | SWAPS</p>
+</blockquote>
+<p><img src="/images/mysql_profiling_params.png" alt></p>
+<p>SOURCE：显示和Source_function,Source_file,Source_line相关的开销信息</p>
+<p><strong><em>注意：profiling被应用在每一个会话中，当前会话关闭后，profiling统计的信息将丢失。</em></strong></p>
+<p><strong>实例：</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show variables like '%profil%';   ## 查看mysql profiling相关配置</span><br><span class="line">+<span class="comment">------------------------+-------+</span></span><br><span class="line">| Variable_name          | Value |</span><br><span class="line">+<span class="comment">------------------------+-------+</span></span><br><span class="line">| have_profiling         | YES   |</span><br><span class="line">| profiling              | OFF   | <span class="comment">## 是否开启</span></span><br><span class="line">| profiling_history_size | 15    | <span class="comment">## 记录历史条数</span></span><br><span class="line">+<span class="comment">------------------------+-------+</span></span><br><span class="line">3 rows in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; <span class="keyword">set</span> profiling = <span class="keyword">ON</span>;  <span class="comment">## 开启分析</span></span><br><span class="line">Query OK, 0 rows affected (0.01 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; show variables like '%profil%';</span><br><span class="line">+<span class="comment">------------------------+-------+</span></span><br><span class="line">| Variable_name          | Value |</span><br><span class="line">+<span class="comment">------------------------+-------+</span></span><br><span class="line">| have_profiling         | YES   |</span><br><span class="line">| profiling              | ON    |</span><br><span class="line">| profiling_history_size | 15    |</span><br><span class="line">+<span class="comment">------------------------+-------+</span></span><br><span class="line">3 rows in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; <span class="keyword">show</span> <span class="keyword">tables</span>;                   </span><br><span class="line">+<span class="comment">-------------------------------------+</span></span><br><span class="line">| Tables_in_bigdata_new               |</span><br><span class="line">+<span class="comment">-------------------------------------+</span></span><br><span class="line">| TblDataShoppingRecord               |</span><br><span class="line">| TblDataViewRecord                   |</span><br><span class="line">| TblEmailNotifyRecord                |</span><br><span class="line">+<span class="comment">-------------------------------------+</span></span><br><span class="line">3 rows in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; <span class="keyword">select</span> * <span class="keyword">from</span> TblDataShoppingRecord <span class="keyword">order</span> <span class="keyword">by</span> <span class="keyword">id</span> <span class="keyword">desc</span> <span class="keyword">limit</span> <span class="number">1</span>\G;</span><br><span class="line">*************************** 1. row ***************************</span><br><span class="line">                id: 1263</span><br><span class="line">            status: off</span><br><span class="line">              name: mapdata_meta_27</span><br><span class="line">           creator: zhangsan</span><br><span class="line">        createTime: 2019-10-08 15:20:20</span><br><span class="line">1 row in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line"><span class="keyword">ERROR</span>: </span><br><span class="line"><span class="keyword">No</span> <span class="keyword">query</span> specified</span><br><span class="line"></span><br><span class="line">mysql&gt; <span class="keyword">select</span> * <span class="keyword">from</span> TblDataShoppingRecord <span class="keyword">where</span> creator = <span class="string">'austin'</span> <span class="keyword">order</span> <span class="keyword">by</span> <span class="keyword">id</span> <span class="keyword">desc</span> <span class="keyword">limit</span> <span class="number">1</span>\G;</span><br><span class="line">*************************** 1. row ***************************</span><br><span class="line">                id: 1285</span><br><span class="line">            status: off</span><br><span class="line">              name: metadata_30</span><br><span class="line">           creator: austin</span><br><span class="line">        createTime: 2019-10-08 15:20:20</span><br><span class="line">1 row in <span class="keyword">set</span> (<span class="number">0.01</span> sec)</span><br><span class="line"></span><br><span class="line"><span class="keyword">ERROR</span>: </span><br><span class="line"><span class="keyword">No</span> <span class="keyword">query</span> specified</span><br><span class="line"></span><br><span class="line">mysql&gt; <span class="keyword">show</span> <span class="keyword">profiles</span>;</span><br><span class="line">+<span class="comment">----------+------------+---------------------------------------------------------------------------------------------+</span></span><br><span class="line">| Query_ID | Duration   | Query                                                                                       |</span><br><span class="line">+<span class="comment">----------+------------+---------------------------------------------------------------------------------------------+</span></span><br><span class="line">|        1 | 0.00045400 | <span class="keyword">show</span> <span class="keyword">variables</span> <span class="keyword">like</span> <span class="string">'%profil%'</span>                                                              |</span><br><span class="line">|        <span class="number">2</span> | <span class="number">0.00086200</span> | <span class="keyword">show</span> <span class="keyword">tables</span>                                                                                 |</span><br><span class="line">|        <span class="number">3</span> | <span class="number">0.00034900</span> | <span class="keyword">select</span> * <span class="keyword">from</span> TblDataShoppingRecord <span class="keyword">order</span> <span class="keyword">by</span> <span class="keyword">id</span> <span class="keyword">desc</span> <span class="keyword">limit</span> <span class="number">1</span>                                |</span><br><span class="line">|        <span class="number">4</span> | <span class="number">0.00040000</span> | <span class="keyword">select</span> * <span class="keyword">from</span> TblDataShoppingRecord <span class="keyword">where</span> creator = <span class="string">'austin'</span> <span class="keyword">order</span> <span class="keyword">by</span> <span class="keyword">id</span> <span class="keyword">desc</span> <span class="keyword">limit</span> <span class="number">1</span>       |</span><br><span class="line">+<span class="comment">----------+------------+---------------------------------------------------------------------------------------------+</span></span><br><span class="line"><span class="number">4</span> <span class="keyword">rows</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; <span class="keyword">show</span> profile <span class="keyword">for</span> <span class="keyword">query</span> <span class="number">4</span>;</span><br><span class="line">+<span class="comment">--------------------------------+----------+</span></span><br><span class="line">| Status                         | Duration |</span><br><span class="line">+<span class="comment">--------------------------------+----------+</span></span><br><span class="line">| starting                       | 0.000039 |</span><br><span class="line">| checking query <span class="keyword">cache</span> <span class="keyword">for</span> <span class="keyword">query</span> | <span class="number">0.000052</span> |</span><br><span class="line">| Opening <span class="keyword">tables</span>                 | <span class="number">0.000015</span> |</span><br><span class="line">| <span class="keyword">System</span> <span class="keyword">lock</span>                    | <span class="number">0.000005</span> |</span><br><span class="line">| <span class="keyword">Table</span> <span class="keyword">lock</span>                     | <span class="number">0.000037</span> |</span><br><span class="line">| init                           | <span class="number">0.000031</span> |</span><br><span class="line">| optimizing                     | <span class="number">0.000009</span> |</span><br><span class="line">| <span class="keyword">statistics</span>                     | <span class="number">0.000073</span> |</span><br><span class="line">| preparing                      | <span class="number">0.000016</span> |</span><br><span class="line">| executing                      | <span class="number">0.000005</span> |</span><br><span class="line">| Sorting <span class="keyword">result</span>                 | <span class="number">0.000006</span> |</span><br><span class="line">| Sending <span class="keyword">data</span>                   | <span class="number">0.000050</span> |</span><br><span class="line">| <span class="keyword">end</span>                            | <span class="number">0.000007</span> |</span><br><span class="line">| <span class="keyword">query</span> <span class="keyword">end</span>                      | <span class="number">0.000004</span> |</span><br><span class="line">| freeing items                  | <span class="number">0.000027</span> |</span><br><span class="line">| storing <span class="keyword">result</span> <span class="keyword">in</span> <span class="keyword">query</span> <span class="keyword">cache</span>  | <span class="number">0.000015</span> |</span><br><span class="line">| <span class="keyword">logging</span> slow <span class="keyword">query</span>             | <span class="number">0.000004</span> |</span><br><span class="line">| cleaning up                    | <span class="number">0.000005</span> |</span><br><span class="line">+<span class="comment">--------------------------------+----------+</span></span><br><span class="line"><span class="number">18</span> <span class="keyword">rows</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; <span class="keyword">show</span> profile cpu <span class="keyword">for</span> <span class="keyword">query</span> <span class="number">4</span>;</span><br><span class="line">+<span class="comment">--------------------------------+----------+----------+------------+</span></span><br><span class="line">| Status                         | Duration | CPU_user | CPU_system |</span><br><span class="line">+<span class="comment">--------------------------------+----------+----------+------------+</span></span><br><span class="line">| starting                       | 0.000039 | 0.000000 |   0.000000 |</span><br><span class="line">| checking query <span class="keyword">cache</span> <span class="keyword">for</span> <span class="keyword">query</span> | <span class="number">0.000052</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |</span><br><span class="line">| Opening <span class="keyword">tables</span>                 | <span class="number">0.000015</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |</span><br><span class="line">| <span class="keyword">System</span> <span class="keyword">lock</span>                    | <span class="number">0.000005</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |</span><br><span class="line">| <span class="keyword">Table</span> <span class="keyword">lock</span>                     | <span class="number">0.000037</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |</span><br><span class="line">| init                           | <span class="number">0.000031</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |</span><br><span class="line">| optimizing                     | <span class="number">0.000009</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |</span><br><span class="line">| <span class="keyword">statistics</span>                     | <span class="number">0.000073</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |</span><br><span class="line">| preparing                      | <span class="number">0.000016</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |</span><br><span class="line">| executing                      | <span class="number">0.000005</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |</span><br><span class="line">| Sorting <span class="keyword">result</span>                 | <span class="number">0.000006</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |</span><br><span class="line">| Sending <span class="keyword">data</span>                   | <span class="number">0.000050</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |</span><br><span class="line">| <span class="keyword">end</span>                            | <span class="number">0.000007</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |</span><br><span class="line">| <span class="keyword">query</span> <span class="keyword">end</span>                      | <span class="number">0.000004</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |</span><br><span class="line">| freeing items                  | <span class="number">0.000027</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |</span><br><span class="line">| storing <span class="keyword">result</span> <span class="keyword">in</span> <span class="keyword">query</span> <span class="keyword">cache</span>  | <span class="number">0.000015</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |</span><br><span class="line">| <span class="keyword">logging</span> slow <span class="keyword">query</span>             | <span class="number">0.000004</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |</span><br><span class="line">| cleaning up                    | <span class="number">0.000005</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |</span><br><span class="line">+<span class="comment">--------------------------------+----------+----------+------------+</span></span><br><span class="line"><span class="number">18</span> <span class="keyword">rows</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; <span class="keyword">show</span> profile <span class="keyword">BLOCK</span> IO, CPU, IPC, <span class="keyword">MEMORY</span>, <span class="keyword">SOURCE</span>, SWAPS  <span class="keyword">for</span> <span class="keyword">query</span> <span class="number">4</span>;   </span><br><span class="line">+<span class="comment">--------------------------------+----------+----------+------------+--------------+---------------+---------------+-------------------+-------+------------------+---------------+-------------+</span></span><br><span class="line">| Status                         | Duration | CPU_user | CPU_system | Block_ops_in | Block_ops_out | Messages_sent | Messages_received | Swaps | Source_function  | Source_file   | Source_line |</span><br><span class="line">+<span class="comment">--------------------------------+----------+----------+------------+--------------+---------------+---------------+-------------------+-------+------------------+---------------+-------------+</span></span><br><span class="line">| starting                       | 0.000039 | 0.000000 |   0.000000 |            0 |             0 |             0 |                 0 |     0 | NULL             | NULL          |        NULL |</span><br><span class="line">| checking query <span class="keyword">cache</span> <span class="keyword">for</span> <span class="keyword">query</span> | <span class="number">0.000052</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |            <span class="number">0</span> |             <span class="number">0</span> |             <span class="number">0</span> |                 <span class="number">0</span> |     <span class="number">0</span> | <span class="literal">unknown</span> <span class="keyword">function</span> | sql_cache.cc  |        <span class="number">1523</span> |</span><br><span class="line">| Opening <span class="keyword">tables</span>                 | <span class="number">0.000015</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |            <span class="number">0</span> |             <span class="number">0</span> |             <span class="number">0</span> |                 <span class="number">0</span> |     <span class="number">0</span> | <span class="literal">unknown</span> <span class="keyword">function</span> | sql_base.cc   |        <span class="number">4618</span> |</span><br><span class="line">| <span class="keyword">System</span> <span class="keyword">lock</span>                    | <span class="number">0.000005</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |            <span class="number">0</span> |             <span class="number">0</span> |             <span class="number">0</span> |                 <span class="number">0</span> |     <span class="number">0</span> | <span class="literal">unknown</span> <span class="keyword">function</span> | lock.cc       |         <span class="number">260</span> |</span><br><span class="line">| <span class="keyword">Table</span> <span class="keyword">lock</span>                     | <span class="number">0.000037</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |            <span class="number">0</span> |             <span class="number">0</span> |             <span class="number">0</span> |                 <span class="number">0</span> |     <span class="number">0</span> | <span class="literal">unknown</span> <span class="keyword">function</span> | lock.cc       |         <span class="number">271</span> |</span><br><span class="line">| init                           | <span class="number">0.000031</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |            <span class="number">0</span> |             <span class="number">0</span> |             <span class="number">0</span> |                 <span class="number">0</span> |     <span class="number">0</span> | <span class="literal">unknown</span> <span class="keyword">function</span> | sql_select.cc |        <span class="number">2528</span> |</span><br><span class="line">| optimizing                     | <span class="number">0.000009</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |            <span class="number">0</span> |             <span class="number">0</span> |             <span class="number">0</span> |                 <span class="number">0</span> |     <span class="number">0</span> | <span class="literal">unknown</span> <span class="keyword">function</span> | sql_select.cc |         <span class="number">833</span> |</span><br><span class="line">| <span class="keyword">statistics</span>                     | <span class="number">0.000073</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |            <span class="number">0</span> |             <span class="number">0</span> |             <span class="number">0</span> |                 <span class="number">0</span> |     <span class="number">0</span> | <span class="literal">unknown</span> <span class="keyword">function</span> | sql_select.cc |        <span class="number">1024</span> |</span><br><span class="line">| preparing                      | <span class="number">0.000016</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |            <span class="number">0</span> |             <span class="number">0</span> |             <span class="number">0</span> |                 <span class="number">0</span> |     <span class="number">0</span> | <span class="literal">unknown</span> <span class="keyword">function</span> | sql_select.cc |        <span class="number">1046</span> |</span><br><span class="line">| executing                      | <span class="number">0.000005</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |            <span class="number">0</span> |             <span class="number">0</span> |             <span class="number">0</span> |                 <span class="number">0</span> |     <span class="number">0</span> | <span class="literal">unknown</span> <span class="keyword">function</span> | sql_select.cc |        <span class="number">1780</span> |</span><br><span class="line">| Sorting <span class="keyword">result</span>                 | <span class="number">0.000006</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |            <span class="number">0</span> |             <span class="number">0</span> |             <span class="number">0</span> |                 <span class="number">0</span> |     <span class="number">0</span> | <span class="literal">unknown</span> <span class="keyword">function</span> | sql_select.cc |        <span class="number">2205</span> |</span><br><span class="line">| Sending <span class="keyword">data</span>                   | <span class="number">0.000050</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |            <span class="number">0</span> |             <span class="number">0</span> |             <span class="number">0</span> |                 <span class="number">0</span> |     <span class="number">0</span> | <span class="literal">unknown</span> <span class="keyword">function</span> | sql_select.cc |        <span class="number">2338</span> |</span><br><span class="line">| <span class="keyword">end</span>                            | <span class="number">0.000007</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |            <span class="number">0</span> |             <span class="number">0</span> |             <span class="number">0</span> |                 <span class="number">0</span> |     <span class="number">0</span> | <span class="literal">unknown</span> <span class="keyword">function</span> | sql_select.cc |        <span class="number">2574</span> |</span><br><span class="line">| <span class="keyword">query</span> <span class="keyword">end</span>                      | <span class="number">0.000004</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |            <span class="number">0</span> |             <span class="number">0</span> |             <span class="number">0</span> |                 <span class="number">0</span> |     <span class="number">0</span> | <span class="literal">unknown</span> <span class="keyword">function</span> | sql_parse.cc  |        <span class="number">5118</span> |</span><br><span class="line">| freeing items                  | <span class="number">0.000027</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |            <span class="number">0</span> |             <span class="number">0</span> |             <span class="number">0</span> |                 <span class="number">0</span> |     <span class="number">0</span> | <span class="literal">unknown</span> <span class="keyword">function</span> | sql_parse.cc  |        <span class="number">6142</span> |</span><br><span class="line">| storing <span class="keyword">result</span> <span class="keyword">in</span> <span class="keyword">query</span> <span class="keyword">cache</span>  | <span class="number">0.000015</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |            <span class="number">0</span> |             <span class="number">0</span> |             <span class="number">0</span> |                 <span class="number">0</span> |     <span class="number">0</span> | <span class="literal">unknown</span> <span class="keyword">function</span> | sql_cache.cc  |         <span class="number">985</span> |</span><br><span class="line">| <span class="keyword">logging</span> slow <span class="keyword">query</span>             | <span class="number">0.000004</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |            <span class="number">0</span> |             <span class="number">0</span> |             <span class="number">0</span> |                 <span class="number">0</span> |     <span class="number">0</span> | <span class="literal">unknown</span> <span class="keyword">function</span> | sql_parse.cc  |        <span class="number">1735</span> |</span><br><span class="line">| cleaning up                    | <span class="number">0.000005</span> | <span class="number">0.000000</span> |   <span class="number">0.000000</span> |            <span class="number">0</span> |             <span class="number">0</span> |             <span class="number">0</span> |                 <span class="number">0</span> |     <span class="number">0</span> | <span class="literal">unknown</span> <span class="keyword">function</span> | sql_parse.cc  |        <span class="number">1703</span> |</span><br><span class="line">+<span class="comment">--------------------------------+----------+----------+------------+--------------+---------------+---------------+-------------------+-------+------------------+---------------+-------------+</span></span><br><span class="line"><span class="number">18</span> <span class="keyword">rows</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; <span class="keyword">set</span> profiling=<span class="number">0</span>;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; show variables like '%profil%';</span><br><span class="line">+<span class="comment">------------------------+-------+</span></span><br><span class="line">| Variable_name          | Value |</span><br><span class="line">+<span class="comment">------------------------+-------+</span></span><br><span class="line">| have_profiling         | YES   |</span><br><span class="line">| profiling              | OFF   |</span><br><span class="line">| profiling_history_size | 15    |</span><br><span class="line">+<span class="comment">------------------------+-------+</span></span><br><span class="line">3 rows in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+
+<h2 id="结果参数说明"><a href="#结果参数说明" class="headerlink" title="结果参数说明"></a>结果参数说明</h2><p>其中标题含义：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&quot;Status&quot;: &quot;query end&quot;,  状态</span><br><span class="line">&quot;Duration&quot;: &quot;1.751142&quot;, 持续时间</span><br><span class="line">&quot;CPU_user&quot;: &quot;0.008999&quot;, cpu用户</span><br><span class="line">&quot;CPU_system&quot;: &quot;0.003999&quot;, cpu系统</span><br><span class="line">&quot;Context_voluntary&quot;: &quot;98&quot;, 上下文主动切换</span><br><span class="line">&quot;Context_involuntary&quot;: &quot;0&quot;, 上下文被动切换</span><br><span class="line">&quot;Block_ops_in&quot;: &quot;8&quot;, 阻塞的输入操作</span><br><span class="line">&quot;Block_ops_out&quot;: &quot;32&quot;, 阻塞的输出操作</span><br><span class="line">&quot;Messages_sent&quot;: &quot;0&quot;, 消息发出</span><br><span class="line">&quot;Messages_received&quot;: &quot;0&quot;, 消息接受</span><br><span class="line">&quot;Page_faults_major&quot;: &quot;0&quot;, 主分页错误</span><br><span class="line">&quot;Page_faults_minor&quot;: &quot;0&quot;, 次分页错误</span><br><span class="line">&quot;Swaps&quot;: &quot;0&quot;, 交换次数</span><br><span class="line">&quot;Source_function&quot;: &quot;mysql_execute_command&quot;, 源功能</span><br><span class="line">&quot;Source_file&quot;: &quot;sql_parse.cc&quot;, 源文件</span><br><span class="line">&quot;Source_line&quot;: &quot;4465&quot; 源代码行</span><br></pre></td></tr></table></figure>
+
+<p>不同阶段：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">starting：开始</span><br><span class="line">checking permissions：检查权限</span><br><span class="line">Opening tables：打开表</span><br><span class="line">init ： 初始化</span><br><span class="line">System lock ：系统锁</span><br><span class="line">optimizing ： 优化</span><br><span class="line">statistics ： 统计</span><br><span class="line">preparing ：准备</span><br><span class="line">executing ：执行</span><br><span class="line">Sending data ：发送数据</span><br><span class="line">Sorting result ：排序</span><br><span class="line">end ：结束</span><br><span class="line">query end ：查询 结束</span><br><span class="line">closing tables ： 关闭表 ／去除TMP 表</span><br><span class="line">freeing items ： 释放物品</span><br><span class="line">cleaning up ：清理</span><br></pre></td></tr></table></figure>
+
+<h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><p>显示的记录数由变量“profiling_history_size”控制,默认15条，最大值为100，可以手动设置该参数值。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">mysql&gt; set profiling_history_size = 30;  </span><br><span class="line">Query OK, 0 rows affected (0.01 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; show variables like '%profil%';</span><br><span class="line">+<span class="comment">------------------------+-------+</span></span><br><span class="line">| Variable_name          | Value |</span><br><span class="line">+<span class="comment">------------------------+-------+</span></span><br><span class="line">| have_profiling         | YES   |</span><br><span class="line">| profiling              | OFF   |</span><br><span class="line">| profiling_history_size | 30    |</span><br><span class="line">+<span class="comment">------------------------+-------+</span></span><br><span class="line">3 rows in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+
+<h1 id="参考博客"><a href="#参考博客" class="headerlink" title="参考博客"></a>参考博客</h1><p>[1] <a href="https://segmentfault.com/a/1190000008131735#articleHeader8" target="_blank" rel="noopener">MySQL 性能优化神器 Explain 使用分析</a><br>[2] <a href="https://blog.csdn.net/ty_hf/article/details/54895026" target="_blank" rel="noopener">Mysql分析-profile详解</a><br>[3] <a href="https://blog.csdn.net/Field_Yang/article/details/80629663" target="_blank" rel="noopener">MySQL性能分析工具profiling</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Mysql/" rel="tag"><i class="fa fa-tag"></i> Mysql</a>
+          
+            <a href="/tags/工具/" rel="tag"><i class="fa fa-tag"></i> 工具</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/09/23/Kafka快速入门/" rel="next" title="Kafka快速入门">
+                <i class="fa fa-chevron-left"></i> Kafka快速入门
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        
+  <div class="bdsharebuttonbox">
+    <a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+    <a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网"></a>
+    <a href="#" class="bds_sqq" data-cmd="sqq" title="分享到QQ好友"></a>
+    <a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"></a>
+    <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"></a>
+    <a href="#" class="bds_tieba" data-cmd="tieba" title="分享到百度贴吧"></a>
+    <a href="#" class="bds_twi" data-cmd="twi" title="分享到Twitter"></a>
+    <a href="#" class="bds_fbook" data-cmd="fbook" title="分享到Facebook"></a>
+    <a href="#" class="bds_more" data-cmd="more"></a>
+    <a class="bds_count" data-cmd="count"></a>
+  </div>
+  <script>
+    window._bd_share_config = {
+      "common": {
+        "bdText": "",
+        "bdMini": "2",
+        "bdMiniList": false,
+        "bdPic": ""
+      },
+      "share": {
+        "bdSize": "16",
+        "bdStyle": "0"
+      },
+      "image": {
+        "viewList": ["tsina", "douban", "sqq", "qzone", "weixin", "twi", "fbook"],
+        "viewText": "分享到：",
+        "viewSize": "16"
+      }
+    }
+  </script>
+
+<script>
+  with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="Austin Brant">
+            
+              <p class="site-author-name" itemprop="name">Austin Brant</p>
+              <p class="site-description motion-element" itemprop="description">冰冻三尺,非一日之寒</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">18</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">24</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Explain"><span class="nav-number">1.</span> <span class="nav-text">Explain</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据准备"><span class="nav-number">1.2.</span> <span class="nav-text">数据准备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#EXPLAIN-输出格式"><span class="nav-number">1.3.</span> <span class="nav-text">EXPLAIN 输出格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参数说明"><span class="nav-number">1.4.</span> <span class="nav-text">参数说明</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#select-type"><span class="nav-number">1.4.1.</span> <span class="nav-text">select_type</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#type"><span class="nav-number">1.4.2.</span> <span class="nav-text">type</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#key-len"><span class="nav-number">1.4.3.</span> <span class="nav-text">key_len</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Extra"><span class="nav-number">1.4.4.</span> <span class="nav-text">Extra</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Profiling"><span class="nav-number">2.</span> <span class="nav-text">Profiling</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介-1"><span class="nav-number">2.1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#用法"><span class="nav-number">2.2.</span> <span class="nav-text">用法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结果参数说明"><span class="nav-number">2.3.</span> <span class="nav-text">结果参数说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置"><span class="nav-number">2.4.</span> <span class="nav-text">配置</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考博客"><span class="nav-number">3.</span> <span class="nav-text">参考博客</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Austin Brant</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_sphere.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
