@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Java,Netty,网络IO,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Austin Brant" type="application/atom+xml">
+
+
+
+
+
+
+<meta name="description" content="共享Handler代码：https://github.com/austin-brant/netty-im 在使用 Netty 完成了一个 IM 系统的核心功能之后，我们再来仔细看一下服务端  NettyServer.java  1234567891011121314151617serverBootstrap	.childHandler(new ChannelInitializer&amp;lt;NioSo">
+<meta name="keywords" content="Java,Netty,网络IO">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Netty性能优化">
+<meta property="og:url" content="http://yoursite.com/2019/11/20/Netty性能优化/index.html">
+<meta property="og:site_name" content="Austin Brant">
+<meta property="og:description" content="共享Handler代码：https://github.com/austin-brant/netty-im 在使用 Netty 完成了一个 IM 系统的核心功能之后，我们再来仔细看一下服务端  NettyServer.java  1234567891011121314151617serverBootstrap	.childHandler(new ChannelInitializer&amp;lt;NioSo">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/netty_broadcast.png">
+<meta property="og:image" content="http://yoursite.com/images/netty_broadcast_writeflush.png">
+<meta property="og:updated_time" content="2019-11-20T12:17:03.884Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Netty性能优化">
+<meta name="twitter:description" content="共享Handler代码：https://github.com/austin-brant/netty-im 在使用 Netty 完成了一个 IM 系统的核心功能之后，我们再来仔细看一下服务端  NettyServer.java  1234567891011121314151617serverBootstrap	.childHandler(new ChannelInitializer&amp;lt;NioSo">
+<meta name="twitter:image" content="http://yoursite.com/images/netty_broadcast.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/11/20/Netty性能优化/">
+
+
+
+
+
+  <title>Netty性能优化 | Austin Brant</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Austin Brant</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/20/Netty性能优化/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Austin Brant">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Austin Brant">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Netty性能优化</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-11-20T20:12:30+08:00">
+                2019-11-20
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2019-11-20T20:17:03+08:00">
+                2019-11-20
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Netty/" itemprop="url" rel="index">
+                    <span itemprop="name">Netty</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Netty/基础/" itemprop="url" rel="index">
+                    <span itemprop="name">基础</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  3.3k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  13
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="共享Handler"><a href="#共享Handler" class="headerlink" title="共享Handler"></a>共享Handler</h2><p>代码：<a href="https://github.com/austin-brant/netty-im" target="_blank" rel="noopener">https://github.com/austin-brant/netty-im</a></p>
+<p>在使用 Netty 完成了一个 IM 系统的核心功能之后，我们再来仔细看一下服务端</p>
+<blockquote>
+<p>NettyServer.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">serverBootstrap</span><br><span class="line">	.childHandler(<span class="keyword">new</span> ChannelInitializer&lt;NioSocketChannel&gt;() &#123;</span><br><span class="line">	    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initChannel</span><span class="params">(NioSocketChannel ch)</span> </span>&#123;</span><br><span class="line">	        ch.pipeline().addLast(<span class="keyword">new</span> Spliter());</span><br><span class="line">	        ch.pipeline().addLast(<span class="keyword">new</span> PacketDecoder());</span><br><span class="line">	        ch.pipeline().addLast(<span class="keyword">new</span> LoginRequestHandler());</span><br><span class="line">	        ch.pipeline().addLast(<span class="keyword">new</span> AuthHandler());</span><br><span class="line">	        ch.pipeline().addLast(<span class="keyword">new</span> MessageRequestHandler());</span><br><span class="line">	        ch.pipeline().addLast(<span class="keyword">new</span> CreateGroupRequestHandler());</span><br><span class="line">	        ch.pipeline().addLast(<span class="keyword">new</span> JoinGroupRequestHandler());</span><br><span class="line">	        ch.pipeline().addLast(<span class="keyword">new</span> QuitGroupRequestHandler());</span><br><span class="line">	        ch.pipeline().addLast(<span class="keyword">new</span> ListGroupMembersRequestHandler());</span><br><span class="line">	        ch.pipeline().addLast(<span class="keyword">new</span> GroupMessageRequestHandler());</span><br><span class="line">	        ch.pipeline().addLast(<span class="keyword">new</span> LogoutRequestHandler());</span><br><span class="line">	        ch.pipeline().addLast(<span class="keyword">new</span> PacketEncoder());</span><br><span class="line">	    &#125;</span><br><span class="line">	&#125;);</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><p>我们看到，服务端的 pipeline 链里面已经有 12 个 handler，其中，与指令相关的 handler 有 9 个。</p>
+</li>
+<li><p>Netty 在这里的逻辑是：<strong>每次有新连接到来的时候，都会调用 ChannelInitializer 的 initChannel() 方法，然后这里 9 个指令相关的 handler 都会被 new 一次</strong>。</p>
+</li>
+<li><p>其实这里的每一个指令 handler，他们内部都是没有成员变量的，也就是说是无状态的，我们完全可以使用单例模式，即调用 pipeline().addLast() 方法的时候，都直接使用单例，不需要每次都 new，提高效率，也避免了创建很多小的对象。</p>
+</li>
+</ol>
+<p>比如，我们拿 LoginRequestHandler 举例，来看一下如何改造</p>
+<blockquote>
+<p>LoginRequestHandler.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1. 加上注解标识，表明该 handler 是可以多个 channel 共享的</span></span><br><span class="line"><span class="meta">@ChannelHandler</span>.Sharable</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LoginRequestHandler</span> <span class="keyword">extends</span> <span class="title">SimpleChannelInboundHandler</span>&lt;<span class="title">LoginRequestPacket</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 2. 构造单例</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> LoginRequestHandler INSTANCE = <span class="keyword">new</span> LoginRequestHandler();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="title">LoginRequestHandler</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><p>首先，非常重要的一点，如果一个 handler 要被多个 channel 进行共享，必须要加上 <strong><code>@ChannelHandler.Sharable</code></strong> 显示地告诉 Netty，这个 handler 是支持多个 channel 共享的，否则会报错，读者可以自行尝试一下。</p>
+</li>
+<li><p>然后，我们仿照 Netty 源码里面单例模式的写法，构造一个单例模式的类。</p>
+</li>
+</ol>
+<p>接着，我们在服务端的代理里面就可以这么写</p>
+<blockquote>
+<p>NettyServer.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">serverBootstrap</span><br><span class="line">        .childHandler(<span class="keyword">new</span> ChannelInitializer&lt;NioSocketChannel&gt;() &#123;</span><br><span class="line">            <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initChannel</span><span class="params">(NioSocketChannel ch)</span> </span>&#123;</span><br><span class="line">                <span class="comment">// ...单例模式，多个 channel 共享同一个 handler</span></span><br><span class="line">                ch.pipeline().addLast(LoginRequestHandler.INSTANCE);</span><br><span class="line">                <span class="comment">// ...</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br></pre></td></tr></table></figure>
+
+<p>这样的话，每来一次新的连接，添加 handler 的时候就不需要每次都 new 了。</p>
+<h2 id="压缩-handler-合并编解码器"><a href="#压缩-handler-合并编解码器" class="headerlink" title="压缩 handler - 合并编解码器"></a>压缩 handler - 合并编解码器</h2><p>当我们改造完了之后，我们再来看一下服务端代码</p>
+<blockquote>
+<p>NettyServer.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">serverBootstrap</span><br><span class="line">        .childHandler(<span class="keyword">new</span> ChannelInitializer&lt;NioSocketChannel&gt;() &#123;</span><br><span class="line">            <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initChannel</span><span class="params">(NioSocketChannel ch)</span> </span>&#123;</span><br><span class="line">                ch.pipeline().addLast(<span class="keyword">new</span> Spliter());</span><br><span class="line">                ch.pipeline().addLast(<span class="keyword">new</span> PacketDecoder());</span><br><span class="line">                ch.pipeline().addLast(LoginRequestHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(AuthHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(MessageRequestHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(CreateGroupRequestHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(JoinGroupRequestHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(QuitGroupRequestHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(ListGroupMembersRequestHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(GroupMessageRequestHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(LogoutRequestHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(<span class="keyword">new</span> PacketEncoder());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br></pre></td></tr></table></figure>
+
+<p>pipeline 中第一个 handler - <code>Spliter</code>，我们是无法改动它的，因为他<strong>内部实现是与每个 channel 有关，每个 Spliter 需要维持每个 channel 当前读到的数据，也就是说他是有状态的</strong>。 而 PacketDecoder 与 PacketEncoder 我们是可以继续改造的，Netty 内部提供了一个类，叫做 <code>MessageToMessageCodec</code>，使用它可以让我们的编解码操作放到一个类里面去实现，首先我们定义一个 PacketCodecHandler:</p>
+<blockquote>
+<p>PacketCodecHandler.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ChannelHandler</span>.Sharable</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PacketCodecHandler</span> <span class="keyword">extends</span> <span class="title">MessageToMessageCodec</span>&lt;<span class="title">ByteBuf</span>, <span class="title">Packet</span>&gt; </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> PacketCodecHandler INSTANCE = <span class="keyword">new</span> PacketCodecHandler();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">PacketCodecHandler</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">decode</span><span class="params">(ChannelHandlerContext ctx, ByteBuf byteBuf, List&lt;Object&gt; out)</span> </span>&#123;</span><br><span class="line">        out.add(PacketCodec.INSTANCE.decode(byteBuf));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">encode</span><span class="params">(ChannelHandlerContext ctx, Packet packet, List&lt;Object&gt; out)</span> </span>&#123;</span><br><span class="line">        ByteBuf byteBuf = ctx.channel().alloc().ioBuffer();</span><br><span class="line">        PacketCodec.INSTANCE.encode(byteBuf, packet);</span><br><span class="line">        out.add(byteBuf);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><p>首先，这里 PacketCodecHandler，他是一个无状态的 handler，因此，同样可以使用单例模式来实现。</p>
+</li>
+<li><p>需要实现 decode() 和 encode() 方法，decode 是将二进制数据 ByteBuf 转换为 java 对象 Packet，而 encode 操作是一个相反的过程，在 encode() 方法里面，我们调用了 channel 的 内存分配器手工分配了 ByteBuf。</p>
+</li>
+</ol>
+<p>接着，PacketDecoder 和 PacketEncoder都可以删掉，我们的 server 端代码就成了如下的样子</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">serverBootstrap</span><br><span class="line">        .childHandler(<span class="keyword">new</span> ChannelInitializer&lt;NioSocketChannel&gt;() &#123;</span><br><span class="line">            <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initChannel</span><span class="params">(NioSocketChannel ch)</span> </span>&#123;</span><br><span class="line">                ch.pipeline().addLast(<span class="keyword">new</span> Spliter());</span><br><span class="line">                ch.pipeline().addLast(PacketCodecHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(LoginRequestHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(AuthHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(MessageRequestHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(CreateGroupRequestHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(JoinGroupRequestHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(QuitGroupRequestHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(ListGroupMembersRequestHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(GroupMessageRequestHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(LogoutRequestHandler.INSTANCE);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，除了拆包器，所有的 handler 都写成了单例，当然，如果你的 handler 里有与 channel 相关成员变量，那就不要写成单例的，不过，<font color="red"><strong>其实所有的状态都可以绑定在 channel 的属性上，依然是可以改造成单例模式</strong>。</font></p>
+<h2 id="缩短事件传播路径"><a href="#缩短事件传播路径" class="headerlink" title="缩短事件传播路径"></a>缩短事件传播路径</h2><p>如果我们再仔细观察我们的服务端代码，发现，我们的 pipeline 链中，绝大部分都是与指令相关的 handler，我们把这些 handler 编排在一起，是为了逻辑简洁，但是随着指令相关的 handler 越来越多，handler 链越来越长，在事件传播过程中性能损耗会被逐渐放大，因为解码器解出来的每个 Packet 对象都要在每个 handler 上经过一遍，我们接下来来看一下如何缩短这个事件传播的路径。</p>
+<h2 id="压缩handler-合并平行handler"><a href="#压缩handler-合并平行handler" class="headerlink" title="压缩handler - 合并平行handler"></a>压缩handler - 合并平行handler</h2><p>对我们这个应用程序来说，每次 decode 出来一个指令对象之后，其实只会在一个指令 handler 上进行处理，因此，我们其实可以把这么多的指令 handler 压缩为一个 handler，我们来看一下如何实现</p>
+<p>我们定义一个 IMHandler，实现如下：</p>
+<blockquote>
+<p>IMHandler.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ChannelHandler</span>.Sharable</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IMHandler</span> <span class="keyword">extends</span> <span class="title">SimpleChannelInboundHandler</span>&lt;<span class="title">Packet</span>&gt; </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> IMHandler INSTANCE = <span class="keyword">new</span> IMHandler();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Map&lt;Byte, SimpleChannelInboundHandler&lt;? extends Packet&gt;&gt; handlerMap;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">IMHandler</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        handlerMap = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">        handlerMap.put(MESSAGE_REQUEST, MessageRequestHandler.INSTANCE);</span><br><span class="line">        handlerMap.put(CREATE_GROUP_REQUEST, CreateGroupRequestHandler.INSTANCE);</span><br><span class="line">        handlerMap.put(JOIN_GROUP_REQUEST, JoinGroupRequestHandler.INSTANCE);</span><br><span class="line">        handlerMap.put(QUIT_GROUP_REQUEST, QuitGroupRequestHandler.INSTANCE);</span><br><span class="line">        handlerMap.put(LIST_GROUP_MEMBERS_REQUEST, ListGroupMembersRequestHandler.INSTANCE);</span><br><span class="line">        handlerMap.put(GROUP_MESSAGE_REQUEST, GroupMessageRequestHandler.INSTANCE);</span><br><span class="line">        handlerMap.put(LOGOUT_REQUEST, LogoutRequestHandler.INSTANCE);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">channelRead0</span><span class="params">(ChannelHandlerContext ctx, Packet packet)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        handlerMap.get(packet.getCommand()).channelRead(ctx, packet);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>首先，IMHandler 是无状态的，依然是可以写成一个单例模式的类。</li>
+<li>我们定义一个 map，存放指令到各个指令处理器的映射。</li>
+<li><strong>每次回调到 IMHandler 的 <code>channelRead0()</code> 方法的时候，我们通过指令找到具体的 handler，然后调用指令 handler 的 <code>channelRead</code>，他内部会做指令类型转换，最终调用到每个指令 handler 的 <code>channelRead0()</code> 方法。</strong></li>
+</ol>
+<p>接下来，我们来看一下，如此压缩之后，我们的服务端代码</p>
+<blockquote>
+<p>NettyServer.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">serverBootstrap</span><br><span class="line">        .childHandler(<span class="keyword">new</span> ChannelInitializer&lt;NioSocketChannel&gt;() &#123;</span><br><span class="line">            <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initChannel</span><span class="params">(NioSocketChannel ch)</span> </span>&#123;</span><br><span class="line">                ch.pipeline().addLast(<span class="keyword">new</span> Spliter());</span><br><span class="line">                ch.pipeline().addLast(PacketCodecHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(LoginRequestHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(AuthHandler.INSTANCE);</span><br><span class="line">                ch.pipeline().addLast(IMHandler.INSTANCE);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，现在，我们服务端的代码已经变得很清爽了，所有的平行指令处理 handler，我们都压缩到了一个 <code>IMHandler</code>，并且 <code>IMHandler</code> 和指令 handler 均为单例模式，在单机十几万甚至几十万的连接情况下，性能能得到一定程度的提升，创建的对象也大大减少了。</p>
+<p>当然，如果你对性能要求没这么高，大可不必搞得这么复杂，还是按照我们前面小节的方式来实现即可，比如，我们的客户端多数情况下是单连接的，其实并不需要搞得如此复杂，还是保持原样即可。</p>
+<h3 id="更改事件传播源"><a href="#更改事件传播源" class="headerlink" title="更改事件传播源"></a>更改事件传播源</h3><p>另外，关于缩短事件传播路径，除了压缩 handler，还有一个就是，如果你的 <code>outBound</code> 类型的 handler 较多，在写数据的时候能用 <code>ctx.writeAndFlush()</code> 就用这个方法。</p>
+<blockquote>
+<p>ctx.writeAndFlush() 事件传播路径</p>
+</blockquote>
+<p><code>ctx.writeAndFlush()</code> 是从 pipeline 链中的 <strong>当前节点开始往前找到第一个 outBound 类型的 handler 把对象往前进行传播</strong>，如果这个对象确认不需要经过其他 outBound 类型的 handler 处理，就使用这个方法。</p>
+<p><img src="/images/netty_broadcast.png" alt></p>
+<p>如上图，在某个 <code>inBound</code> 类型的 handler 处理完逻辑之后，调用 <code>ctx.writeAndFlush()</code> 可以直接一口气把对象送到 codec 中编码，然后写出去。</p>
+<blockquote>
+<p>ctx.channel().writeAndFlush() 事件传播路径</p>
+</blockquote>
+<p><code>ctx.channel().writeAndFlush()</code> 是 <font color="red"><strong>从<code>pipeline</code>链中的最后一个<code>outBound</code>类型的 <code>handler</code>开始，把对象往前进行传播</strong></font>，如果你确认当前创建的对象需要经过后面的 outBound 类型的 handler，那么就调用此方法。</p>
+<p><img src="/images/netty_broadcast_writeflush.png" alt></p>
+<p>如上图，在某个 <code>inBound</code> 类型的 handler 处理完逻辑之后，调用 <code>ctx.channel().writeAndFlush()</code>，对象会从最后一个 outBound 类型的 handler 开始，逐个往前进行传播，路径是要比 <code>ctx.writeAndFlush()</code> 要长的。</p>
+<p>由此可见，在我们的应用程序中，当我们没有改造编解码之前，我们必须调用 <code>ctx.channel().writeAndFlush()</code>, 而经过改造之后，我们的编码器（既属于 inBound, 又属于 outBound 类型的 handler）已处于 pipeline 的最前面，因此，可以大胆使用 <code>ctx.writeAndFlush()</code>。</p>
+<h2 id="减少阻塞主线程的操作"><a href="#减少阻塞主线程的操作" class="headerlink" title="减少阻塞主线程的操作"></a>减少阻塞主线程的操作</h2><p>通常我们的应用程序会涉及到数据库或者网络，比如以下这个例子</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">channelRead0</span><span class="params">(ChannelHandlerContext ctx, T packet)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 1. balabala 一些逻辑</span></span><br><span class="line">    <span class="comment">// 2. 数据库或者网络等一些耗时的操作</span></span><br><span class="line">    <span class="comment">// 3. writeAndFlush()</span></span><br><span class="line">    <span class="comment">// 4. balabala 其他的逻辑</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们看到，在 <code>channelRead0()</code> 这个方法里面，第二个过程中，我们有一些耗时的操作，这个时候，我们万万不能将这个操作直接就在这个方法中处理了，为什么？</p>
+<p>默认情况下，Netty 在启动的时候会开启 <font color="red"><strong>2 倍的 cpu 核数个 NIO 线程</strong></font>，而通常情况下我们单机会有几万或者十几万的连接，因此，一条 NIO 线程会管理着几千或几万个连接，在传播事件的过程中，单条 NIO 线程的处理逻辑可以抽象成以下一个步骤，我们就拿 <code>channelRead0()</code> 举例</p>
+<blockquote>
+<p>单个 NIO 线程执行的抽象逻辑</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Channel&gt; channelList = 已有数据可读的 channel</span><br><span class="line"><span class="keyword">for</span> (Channel channel in channelist) &#123;</span><br><span class="line">   <span class="keyword">for</span> (ChannelHandler handler in channel.pipeline()) &#123;</span><br><span class="line">       handler.channelRead0();</span><br><span class="line">   &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从上面的抽象逻辑中可以看到，其中<strong>只要有一个 channel 的一个 handler 中的 channelRead0() 方法阻塞了 NIO 线程，最终都会拖慢绑定在该 NIO 线程上的其他所有的 channel</strong>，当然，这里抽象的逻辑已经做了简化，想了解细节可以参考我关于 Netty 中 NIO 线程（即 reactor 线程）文章的分析， <a href="https://www.jianshu.com/p/0d0eece6d467" target="_blank" rel="noopener">「netty 源码分析之揭开 reactor 线程的面纱（一）」</a>， <a href="https://www.jianshu.com/p/467a9b41833e" target="_blank" rel="noopener">「netty 源码分析之揭开 reactor 线程的面纱（二）」</a>， <a href="https://www.jianshu.com/p/58fad8e42379" target="_blank" rel="noopener">「netty 源码分析之揭开 reactor 线程的面纱（三）」</a>。</p>
+<p>而我们需要怎么做？对于耗时的操作，我们需要把这些耗时的操作丢到我们的业务线程池中去处理，下面是解决方案的伪代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">ThreadPool threadPool = xxx;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">channelRead0</span><span class="params">(ChannelHandlerContext ctx, T packet)</span> </span>&#123;</span><br><span class="line">    threadPool.submit(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">        <span class="comment">// 1. balabala 一些逻辑</span></span><br><span class="line">        <span class="comment">// 2. 数据库或者网络等一些耗时的操作</span></span><br><span class="line">        <span class="comment">// 3. writeAndFlush()</span></span><br><span class="line">        <span class="comment">// 4. balabala 其他的逻辑</span></span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样，就可以避免一些耗时的操作影响 Netty 的 NIO 线程，从而影响其他的 channel。</p>
+<h2 id="如何准确统计处理时长"><a href="#如何准确统计处理时长" class="headerlink" title="如何准确统计处理时长"></a>如何准确统计处理时长</h2><p>通常，应用程序都有统计某个操作响应时间的需求，比如，基于我们上面的栗子，我们会这么做</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">channelRead0</span><span class="params">(ChannelHandlerContext ctx, T packet)</span> </span>&#123;</span><br><span class="line">    threadPool.submit(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">        <span class="keyword">long</span> begin = System.currentTimeMillis();</span><br><span class="line">        <span class="comment">// 1. balabala 一些逻辑</span></span><br><span class="line">        <span class="comment">// 2. 数据库或者网络等一些耗时的操作</span></span><br><span class="line">        <span class="comment">// 3. writeAndFlush()</span></span><br><span class="line">        <span class="comment">// 4. balabala 其他的逻辑</span></span><br><span class="line">        <span class="keyword">long</span> time =  System.currentTimeMillis() - begin;</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这种做法其实是不推荐的，为什么？</p>
+<p>因为 writeAndFlush() 这个方法如果在非NIO线程（这里，我们其实是在业务线程中调用了该方法）中执行，它是一个异步的操作，调用之后，其实是会立即返回的，剩下的所有的操作，都是 Netty 内部有一个任务队列异步执行的，想了解底层细节的可以阅读一下我的这篇文章 <a href="https://www.jianshu.com/p/feaeaab2ce56" target="_blank" rel="noopener">「netty 源码分析之 writeAndFlush 全解析」</a>. 因此，这里的 writeAndFlush() 执行完毕之后，并不能代表相关的逻辑，比如事件传播、编码等逻辑执行完毕，只是表示 Netty 接收了这个任务，那么如何才能判断 writeAndFlush() 执行完毕呢？我们可以这么做</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">channelRead0</span><span class="params">(ChannelHandlerContext ctx, T packet)</span> </span>&#123;</span><br><span class="line">    threadPool.submit(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">        <span class="keyword">long</span> begin = System.currentTimeMillis();</span><br><span class="line">        <span class="comment">// 1. balabala 一些逻辑</span></span><br><span class="line">        <span class="comment">// 2. 数据库或者网络等一些耗时的操作</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 3. writeAndFlush</span></span><br><span class="line">        xxx.writeAndFlush().addListener(future -&gt; &#123;</span><br><span class="line">            <span class="keyword">if</span> (future.isDone()) &#123;</span><br><span class="line">                <span class="comment">// 4. balabala 其他的逻辑</span></span><br><span class="line">                <span class="keyword">long</span> time =  System.currentTimeMillis() - begin;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>writeAndFlush()</code> 方法会返回一个 <code>ChannelFuture</code> 对象，我们给这个对象添加一个监听器，然后在回调方法里面，我们可以监听这个方法执行的结果，进而再执行其他逻辑，最后统计耗时，这样统计出来的耗时才是最准确的。</p>
+<p>最后，需要提出的一点就是，Netty 里面很多方法都是异步的操作，在业务线程中如果要统计这部分操作的时间，都需要使用监听器回调的方式来统计耗时，如果在 NIO 线程中调用，就不需要这么干。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p>摘自：<a href="https://juejin.im/book/5b4bc28bf265da0f60130116" target="_blank" rel="noopener">Netty 入门与实战：仿写微信 IM 即时通讯系统</a></p>
+<p>参考文章：<br>[1] <a href="https://www.jianshu.com/p/0d0eece6d467" target="_blank" rel="noopener">netty 源码分析之揭开 reactor 线程的面纱（一）</a><br>[2] <a href="https://www.jianshu.com/p/467a9b41833e" target="_blank" rel="noopener">netty 源码分析之揭开 reactor 线程的面纱（二）</a><br>[3] <a href="https://www.jianshu.com/p/58fad8e42379" target="_blank" rel="noopener">netty 源码分析之揭开 reactor 线程的面纱（三）</a><br>[4] <a href="https://www.jianshu.com/p/feaeaab2ce56" target="_blank" rel="noopener">netty 源码分析之 writeAndFlush 全解析</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"><i class="fa fa-tag"></i> Java</a>
+          
+            <a href="/tags/Netty/" rel="tag"><i class="fa fa-tag"></i> Netty</a>
+          
+            <a href="/tags/网络IO/" rel="tag"><i class="fa fa-tag"></i> 网络IO</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/11/15/Netty心跳与空闲检测/" rel="next" title="Netty心跳与空闲检测">
+                <i class="fa fa-chevron-left"></i> Netty心跳与空闲检测
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        
+  <div class="bdsharebuttonbox">
+    <a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+    <a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网"></a>
+    <a href="#" class="bds_sqq" data-cmd="sqq" title="分享到QQ好友"></a>
+    <a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"></a>
+    <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"></a>
+    <a href="#" class="bds_tieba" data-cmd="tieba" title="分享到百度贴吧"></a>
+    <a href="#" class="bds_twi" data-cmd="twi" title="分享到Twitter"></a>
+    <a href="#" class="bds_fbook" data-cmd="fbook" title="分享到Facebook"></a>
+    <a href="#" class="bds_more" data-cmd="more"></a>
+    <a class="bds_count" data-cmd="count"></a>
+  </div>
+  <script>
+    window._bd_share_config = {
+      "common": {
+        "bdText": "",
+        "bdMini": "2",
+        "bdMiniList": false,
+        "bdPic": ""
+      },
+      "share": {
+        "bdSize": "16",
+        "bdStyle": "0"
+      },
+      "image": {
+        "viewList": ["tsina", "douban", "sqq", "qzone", "weixin", "twi", "fbook"],
+        "viewText": "分享到：",
+        "viewSize": "16"
+      }
+    }
+  </script>
+
+<script>
+  with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="Austin Brant">
+            
+              <p class="site-author-name" itemprop="name">Austin Brant</p>
+              <p class="site-description motion-element" itemprop="description">冰冻三尺,非一日之寒</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">23</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">28</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#共享Handler"><span class="nav-number">1.</span> <span class="nav-text">共享Handler</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#压缩-handler-合并编解码器"><span class="nav-number">2.</span> <span class="nav-text">压缩 handler - 合并编解码器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#缩短事件传播路径"><span class="nav-number">3.</span> <span class="nav-text">缩短事件传播路径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#压缩handler-合并平行handler"><span class="nav-number">4.</span> <span class="nav-text">压缩handler - 合并平行handler</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#更改事件传播源"><span class="nav-number">4.1.</span> <span class="nav-text">更改事件传播源</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#减少阻塞主线程的操作"><span class="nav-number">5.</span> <span class="nav-text">减少阻塞主线程的操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何准确统计处理时长"><span class="nav-number">6.</span> <span class="nav-text">如何准确统计处理时长</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Austin Brant</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_sphere.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
