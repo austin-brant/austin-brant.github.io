@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="入门,Redis,面试,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Austin Brant" type="application/atom+xml">
+
+
+
+
+
+
+<meta name="description" content="Redis Expire Key基础redis数据库在数据库服务器中使用了 redisDb 数据结构，结构如下： 12345678910typedef struct redisDb &amp;#123;     dict *dict;            /* 键空间 key space */     dict *expires;         /* 过期字典 */     dict *blockin">
+<meta name="keywords" content="入门,Redis,面试">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis过期键处理策略">
+<meta property="og:url" content="http://yoursite.com/2019/11/22/Redis过期键处理策略/index.html">
+<meta property="og:site_name" content="Austin Brant">
+<meta property="og:description" content="Redis Expire Key基础redis数据库在数据库服务器中使用了 redisDb 数据结构，结构如下： 12345678910typedef struct redisDb &amp;#123;     dict *dict;            /* 键空间 key space */     dict *expires;         /* 过期字典 */     dict *blockin">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/redis_redisDb.jpg">
+<meta property="og:image" content="http://yoursite.com/images/redis_key_delete.jpg">
+<meta property="og:updated_time" content="2019-11-22T09:51:04.373Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Redis过期键处理策略">
+<meta name="twitter:description" content="Redis Expire Key基础redis数据库在数据库服务器中使用了 redisDb 数据结构，结构如下： 12345678910typedef struct redisDb &amp;#123;     dict *dict;            /* 键空间 key space */     dict *expires;         /* 过期字典 */     dict *blockin">
+<meta name="twitter:image" content="http://yoursite.com/images/redis_redisDb.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/11/22/Redis过期键处理策略/">
+
+
+
+
+
+  <title>Redis过期键处理策略 | Austin Brant</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Austin Brant</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/22/Redis过期键处理策略/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Austin Brant">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Austin Brant">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Redis过期键处理策略</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-11-22T17:44:56+08:00">
+                2019-11-22
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2019-11-22T17:51:04+08:00">
+                2019-11-22
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/中间件/" itemprop="url" rel="index">
+                    <span itemprop="name">中间件</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/中间件/Redis/" itemprop="url" rel="index">
+                    <span itemprop="name">Redis</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  2.8k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  10
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="Redis-Expire-Key基础"><a href="#Redis-Expire-Key基础" class="headerlink" title="Redis Expire Key基础"></a>Redis Expire Key基础</h2><p>redis数据库在数据库服务器中使用了 <code>redisDb</code> 数据结构，结构如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">redisDb</span> &#123;</span></span><br><span class="line">     dict *dict;            <span class="comment">/* 键空间 key space */</span></span><br><span class="line">     dict *expires;         <span class="comment">/* 过期字典 */</span></span><br><span class="line">     dict *blocking_keys;   <span class="comment">/* Keys with clients waiting for data (BLPOP) */</span></span><br><span class="line">     dict *ready_keys;      <span class="comment">/* Blocked keys that received a PUSH */</span></span><br><span class="line">     dict *watched_keys;    <span class="comment">/* WATCHED keys for MULTI/EXEC CAS */</span></span><br><span class="line">     <span class="class"><span class="keyword">struct</span> <span class="title">evictionPoolEntry</span> *<span class="title">eviction_pool</span>;</span> <span class="comment">/* Eviction pool of keys */</span></span><br><span class="line">     <span class="keyword">int</span> id;                <span class="comment">/* Database ID */</span></span><br><span class="line">     <span class="keyword">long</span> <span class="keyword">long</span> avg_ttl;     <span class="comment">/* Average TTL, just for stats */</span></span><br><span class="line">&#125; redisDb;</span><br></pre></td></tr></table></figure>
+
+<p>其中:</p>
+<ul>
+<li><p><strong>键空间(<code>key space</code>):</strong><br>dict字典用来保存数据库中的所有键值对</p>
+</li>
+<li><p><strong>过期字典(<code>expires</code>):</strong><br>保存数据库中所有键的过期时间，过期时间用UNIX时间戳表示，且值为long long整数</p>
+</li>
+</ul>
+<h3 id="设置过期时间命令"><a href="#设置过期时间命令" class="headerlink" title="设置过期时间命令"></a>设置过期时间命令</h3><ul>
+<li><p><code>EXPIRE &lt;key&gt; &lt;ttl&gt;</code> 命令用于将键key的过期时间设置为ttl秒之后</p>
+</li>
+<li><p><code>PEXPIRE &lt;key&gt; &lt;ttl&gt;</code> 命令用于将键key的过期时间设置为ttl毫秒之后</p>
+</li>
+<li><p><code>EXPIREAT &lt;key&gt; &lt;timesramp&gt;</code> 命令用于将key的过期时间设置为timrestamp所指定的秒数时间戳</p>
+</li>
+<li><p><code>PEXPIREAT &lt;key&gt; &lt;timesramp&gt;</code> 命令用于将key的过期时间设置为timrestamp所指定的毫秒数时间戳</p>
+</li>
+</ul>
+<p>设置过期时间：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">redis&gt; set Ccww   5 2 0  </span><br><span class="line">ok  </span><br><span class="line">redis&gt; expire Ccww 5  </span><br><span class="line">ok</span><br></pre></td></tr></table></figure>
+
+<p>使用redisDb结构存储数据图表示：</p>
+<p><img src="/images/redis_redisDb.jpg" alt></p>
+<h3 id="过期时间保存以及判定"><a href="#过期时间保存以及判定" class="headerlink" title="过期时间保存以及判定"></a>过期时间保存以及判定</h3><p>过期键的判定，其实通过过期字典进行判定，步骤：</p>
+<ul>
+<li><p>检查给定键是否存在于过期字典，如果存在，取出键的过期时间</p>
+</li>
+<li><p>通过判断当前UNIX时间戳是否大于键的过期时间，是的话，键已过期，相反则键未过期。</p>
+</li>
+</ul>
+<h2 id="过期键删除策略"><a href="#过期键删除策略" class="headerlink" title="过期键删除策略"></a>过期键删除策略</h2><h3 id="定时删除"><a href="#定时删除" class="headerlink" title="定时删除"></a>定时删除</h3><p>在设置键的过期时间的同时，创建一个定时任务，当键达到过期时间时，立即执行对键的删除操作.</p>
+<ul>
+<li><p>优点<br>对内存友好，定时删除策略可以保证过期键会尽可能快地被删除，并释放国期间所占用的内存</p>
+</li>
+<li><p>缺点<br>对cpu时间不友好，在过期键比较多时，删除任务会占用很大一部分cpu时间，在内存不紧张但cpu时间紧张的情况下，将cpu时间用在删除和当前任务无关的过期键上，影响服务器的响应时间和吞吐量</p>
+</li>
+</ul>
+<h3 id="惰性删除"><a href="#惰性删除" class="headerlink" title="惰性删除"></a>惰性删除</h3><p>放任键过期不管，但在每次从键空间获取键时，都检查取得的键是否过期，如果过期的话，就删除该键，如果没有过期，就返回该键</p>
+<ul>
+<li><p>优点<br>对cpu时间友好，在每次从键空间获取键时进行过期键检查并是否删除，删除目标也仅限当前处理的键，这个策略不会在其他无关的删除任务上花费任何cpu时间。</p>
+</li>
+<li><p>缺点<br>对内存不友好，过期键过期也可能不会被删除，导致所占的内存也不会释放。甚至可能会出现内存泄露的现象，当存在很多过期键，而这些过期键又没有被访问到，这会可能导致它们会一直保存在内存中，造成内存泄露。</p>
+</li>
+</ul>
+<h3 id="定期删除"><a href="#定期删除" class="headerlink" title="定期删除"></a>定期删除</h3><p>由于定时删除会占用太多cpu时间，影响服务器的响应时间和吞吐量, 而惰性删除浪费太多内存，有内存泄露的危险，所以出现一种整合和折中这两种策略的定期删除策略:</p>
+<blockquote>
+<ol>
+<li><p>定期删除策略每隔一段时间执行一次删除过期键操作，并通过<strong>限制删除操作执行的时长和频率</strong>来减少删除操作对CPU时间的影响;</p>
+</li>
+<li><p>至于要删除多少过期键，以及要检查多少个数据库，则由算法决定；</p>
+</li>
+<li><p>定时删除策略有效地减少了因为过期键带来的内存浪费;</p>
+</li>
+</ol>
+</blockquote>
+<p><strong>定时删除策略难点就是确定删除操作执行的时长和频率：</strong></p>
+<ul>
+<li>删除操作执行得太频繁。或者执行时间太长，定期删除策略就会退化成为定时删除策略，以至于将cpu时间过多地消耗在删除过期键上。
+  </li>
+<li>相反，则与惰性删除策略一样，出现浪费内存的情况。</li>
+</ul>
+<p>所以使用定期删除策略，需要根据服务器的情况合理地设置删除操作的执行时长和执行频率。</p>
+<h2 id="过期键删除策略实现"><a href="#过期键删除策略实现" class="headerlink" title="过期键删除策略实现"></a>过期键删除策略实现</h2><p>  Redis服务器结合惰性删除和定期删除两种策略一起使用，通过这两种策略之间的配合使用，使得服务器可以在合理使用CPU时间和浪费内存空间取得平衡点。
+  </p>
+<h3 id="惰性删除策略的实现"><a href="#惰性删除策略的实现" class="headerlink" title="惰性删除策略的实现"></a>惰性删除策略的实现</h3><p>  Redis在执行任何读写命令时都会先找到这个key，惰性删除就作为一个切入点放在查找key之前，如果key过期了就删除这个key。<br>  <img src="/images/redis_key_delete.jpg" alt></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">robj *<span class="title">lookupKeyRead</span><span class="params">(redisDb *db, robj *key)</span> </span>&#123;</span><br><span class="line">          robj *val;</span><br><span class="line">	 expireIfNeeded(db,key); <span class="comment">// 切入点</span></span><br><span class="line">	 val = lookupKey(db,key);</span><br><span class="line">	 <span class="keyword">if</span> (val == <span class="literal">NULL</span>)</span><br><span class="line">	  server.stat_keyspace_misses++;</span><br><span class="line">	 <span class="keyword">else</span></span><br><span class="line">	  server.stat_keyspace_hits++;</span><br><span class="line">	 <span class="keyword">return</span> val;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过expireIfNeeded函数对输入键进行检查是否删除:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">expireIfNeeded</span><span class="params">(redisDb *db, robj *key)</span> </span>&#123;</span><br><span class="line">     <span class="comment">/* 取出键的过期时间 */</span></span><br><span class="line">    <span class="keyword">mstime_t</span> when = getExpire(db,key);</span><br><span class="line">    <span class="keyword">mstime_t</span> now;</span><br><span class="line">    </span><br><span class="line">     <span class="comment">/* 没有过期时间返回0*/</span></span><br><span class="line">    <span class="keyword">if</span> (when &lt; <span class="number">0</span>) <span class="keyword">return</span> <span class="number">0</span>; <span class="comment">/* No expire for this key */</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 服务器loading时*/</span></span><br><span class="line">    <span class="keyword">if</span> (server.loading) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 根据一定规则获取当前时间*/</span></span><br><span class="line">    now = server.lua_caller ? server.lua_time_start : mstime();</span><br><span class="line">    <span class="comment">/* 如果当前的是从(Slave)服务器</span></span><br><span class="line"><span class="comment">     * 0 认为key为无效</span></span><br><span class="line"><span class="comment">     * 1 if we think the key is expired at this time. </span></span><br><span class="line"><span class="comment">     * */</span></span><br><span class="line">    <span class="keyword">if</span> (server.masterhost != <span class="literal">NULL</span>) <span class="keyword">return</span> now &gt; when;</span><br><span class="line"></span><br><span class="line">     <span class="comment">/* key未过期，返回 0 */</span></span><br><span class="line">    <span class="keyword">if</span> (now &lt;= when) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">     <span class="comment">/* 删除键 */</span></span><br><span class="line">    server.stat_expiredkeys++;</span><br><span class="line">    propagateExpire(db,key,server.lazyfree_lazy_expire);</span><br><span class="line">    notifyKeyspaceEvent(NOTIFY_EXPIRED,</span><br><span class="line">        <span class="string">"expired"</span>,key,db-&gt;id);</span><br><span class="line">    <span class="keyword">return</span> server.lazyfree_lazy_expire ? dbAsyncDelete(db,key) :</span><br><span class="line">                                         dbSyncDelete(db,key);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="定期删除策略的实现"><a href="#定期删除策略的实现" class="headerlink" title="定期删除策略的实现"></a>定期删除策略的实现</h3><p>  key的定期删除会在Redis的周期性执行任务（<code>serverCron</code>，默认每100ms执行一次）中进行，而且是发生Redis的<code>master</code>节点，因为slave节点会通过主节点的DEL命令同步过来达到删除key的目的。
+  </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; dbs_per_call; j++) &#123;</span><br><span class="line"> <span class="keyword">int</span> expired;</span><br><span class="line"> redisDb *db = server.db+(current_db % server.dbnum);</span><br><span class="line"> </span><br><span class="line"> current_db++;</span><br><span class="line"> </span><br><span class="line"> <span class="comment">/* 超过25％的key已过期，则继续. */</span></span><br><span class="line"> <span class="keyword">do</span> &#123;</span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">long</span> num, slots;</span><br><span class="line">  <span class="keyword">long</span> <span class="keyword">long</span> now, ttl_sum;</span><br><span class="line">  <span class="keyword">int</span> ttl_samples;</span><br><span class="line"> </span><br><span class="line">  <span class="comment">/* 如果该db没有设置过期key，则继续看下个db*/</span></span><br><span class="line">  <span class="keyword">if</span> ((num = dictSize(db-&gt;expires)) == <span class="number">0</span>) &#123;</span><br><span class="line">   db-&gt;avg_ttl = <span class="number">0</span>;</span><br><span class="line">   <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  slots = dictSlots(db-&gt;expires);</span><br><span class="line">  now = mstime();</span><br><span class="line"> </span><br><span class="line">  <span class="comment">/*但少于1%时，需要调整字典大小*/</span></span><br><span class="line">  <span class="keyword">if</span> (num &amp;&amp; slots &gt; DICT_HT_INITIAL_SIZE &amp;&amp;</span><br><span class="line">   (num*<span class="number">100</span>/slots &lt; <span class="number">1</span>)) <span class="keyword">break</span>;</span><br><span class="line"> </span><br><span class="line">  expired = <span class="number">0</span>;</span><br><span class="line">  ttl_sum = <span class="number">0</span>;</span><br><span class="line">  ttl_samples = <span class="number">0</span>;</span><br><span class="line"> </span><br><span class="line">  <span class="keyword">if</span> (num &gt; ACTIVE_EXPIRE_CYCLE_LOOKUPS_PER_LOOP)</span><br><span class="line">   num = ACTIVE_EXPIRE_CYCLE_LOOKUPS_PER_LOOP;<span class="comment">// 20</span></span><br><span class="line"> </span><br><span class="line">  <span class="keyword">while</span> (num--) &#123;</span><br><span class="line">   dictEntry *de;</span><br><span class="line">   <span class="keyword">long</span> <span class="keyword">long</span> ttl;</span><br><span class="line"> </span><br><span class="line">   <span class="keyword">if</span> ((de = dictGetRandomKey(db-&gt;expires)) == <span class="literal">NULL</span>) <span class="keyword">break</span>;</span><br><span class="line">   ttl = dictGetSignedIntegerVal(de)-now;</span><br><span class="line">   <span class="keyword">if</span> (activeExpireCycleTryExpire(db,de,now)) expired++;</span><br><span class="line">   <span class="keyword">if</span> (ttl &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">/* We want the average TTL of keys yet not expired. */</span></span><br><span class="line">    ttl_sum += ttl;</span><br><span class="line">    ttl_samples++;</span><br><span class="line">   &#125;</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  <span class="comment">/* Update the average TTL stats for this database. */</span></span><br><span class="line">  <span class="keyword">if</span> (ttl_samples) &#123;</span><br><span class="line">   <span class="keyword">long</span> <span class="keyword">long</span> avg_ttl = ttl_sum/ttl_samples;</span><br><span class="line"> </span><br><span class="line">   /样本获取移动平均值 */</span><br><span class="line">   <span class="keyword">if</span> (db-&gt;avg_ttl == <span class="number">0</span>) db-&gt;avg_ttl = avg_ttl;</span><br><span class="line">   db-&gt;avg_ttl = (db-&gt;avg_ttl/<span class="number">50</span>)*<span class="number">49</span> + (avg_ttl/<span class="number">50</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  iteration++;</span><br><span class="line">  <span class="keyword">if</span> ((iteration &amp; <span class="number">0xf</span>) == <span class="number">0</span>) &#123; <span class="comment">/* 每迭代16次检查一次 */</span></span><br><span class="line">   <span class="keyword">long</span> <span class="keyword">long</span> elapsed = ustime()-start;</span><br><span class="line"> </span><br><span class="line">   latencyAddSampleIfNeeded(<span class="string">"expire-cycle"</span>,elapsed/<span class="number">1000</span>);</span><br><span class="line">   <span class="keyword">if</span> (elapsed &gt; timelimit) timelimit_exit = <span class="number">1</span>;</span><br><span class="line">  &#125;</span><br><span class="line"> <span class="comment">/* 超过时间限制则退出*/</span></span><br><span class="line">  <span class="keyword">if</span> (timelimit_exit) <span class="keyword">return</span>;</span><br><span class="line">  <span class="comment">/* 在当前db中，如果少于25%的key过期，则停止继续删除过期key */</span></span><br><span class="line"> &#125; <span class="keyword">while</span> (expired &gt; ACTIVE_EXPIRE_CYCLE_LOOKUPS_PER_LOOP/<span class="number">4</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><font color="red"><strong>依次遍历每个db（默认配置数是16），针对每个db，每次循环随机选择20个（ACTIVE_EXPIRE_CYCLE_LOOKUPS_PER_LOOP）key判断是否过期，如果一轮所选的key少于25%过期，则终止迭代</strong></font>，此外<strong>在迭代过程中如果超过了一定的时间限制</strong>则终止过期删除这一过程。</p>
+<h2 id="Redis采用的过期策略"><a href="#Redis采用的过期策略" class="headerlink" title="Redis采用的过期策略"></a>Redis采用的过期策略</h2><p>redis 过期策略是：定期删除 + 惰性删除</p>
+<p>假设 redis 里放了 10w 个 key，都设置了过期时间，你每隔几百毫秒，就检查 10w 个 key，那 redis 基本上就死了，cpu 负载会很高的，消耗在你的检查过期 key 上了。所以，这里可不是每隔 100ms 就遍历所有的设置过期时间的 key，那样就是一场性能上的灾难。<strong>实际上 redis 是每隔 100ms 随机抽取一些 key 来检查和删除的</strong>。</p>
+<p>但是问题是，定期删除可能会导致很多过期 key 到了时间并没有被删除掉，那咋整呢？所以就需要结合<strong>惰性删除</strong>。</p>
+<p>但是实际上这还是有问题的，如果定期删除漏掉了很多过期 key，然后你也没及时去查，也就没走惰性删除，此时会怎么样？如果大量过期 key 堆积在内存里，导致 redis 内存块耗尽了，咋整？</p>
+<p>答案是：<strong>走内存淘汰机制</strong></p>
+<h3 id="内存淘汰机制"><a href="#内存淘汰机制" class="headerlink" title="内存淘汰机制"></a>内存淘汰机制</h3><p>redis 内存淘汰机制有以下几个：</p>
+<ul>
+<li><p><strong>noeviction</strong>   当内存不足以容纳新写入数据时，新写入操作会报错，这个一般没人用吧，实在是太恶心了</p>
+</li>
+<li><p><strong>allkeys-lru</strong>  当内存不足以容纳新写入数据时，在键空间中，移除最近最少使用的 key（这个是最常用的）；</p>
+</li>
+<li><p><strong>allkeys-random</strong>  当内存不足以容纳新写入数据时，在键空间中，随机移除某个 key，这个一般没人用吧，为啥要随机，肯定是把最近最少使用的 key 给干掉啊；</p>
+</li>
+<li><p><strong>volatile-lru</strong> 当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，移除最近最少使用的 key（这个一般不太合适）；</p>
+</li>
+<li><p><strong>volatile-random</strong> 当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，随机移除某个key；</p>
+</li>
+<li><p><strong>volatile-ttl</strong>  当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，有更早过期时间的 key 优先移除；</p>
+</li>
+</ul>
+<p><strong>设置方式：</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">config set maxmemory-policy volatile-lru</span><br></pre></td></tr></table></figure>
+
+<h2 id="AOF、RDB和复制功能对过期键的处理"><a href="#AOF、RDB和复制功能对过期键的处理" class="headerlink" title="AOF、RDB和复制功能对过期键的处理"></a>AOF、RDB和复制功能对过期键的处理</h2><h3 id="RDB"><a href="#RDB" class="headerlink" title="RDB"></a>RDB</h3><ul>
+<li><p><strong>生成RDB文件</strong><br>程序会数据库中的键进行检查，已过期的键不会保存到新创建的RDB文件中</p>
+</li>
+<li><p><strong>载入RDB文件</strong></p>
+<ul>
+<li>主服务载入RDB文件，会对文件中保存的键进行检查会忽略过期键加载未过期键</li>
+<li>从服务器载入RDB文件，会加载文件所保存的所有键（过期和未过期的），但从主服务器同步数据同时会清空从服务器的数据库。</li>
+</ul>
+</li>
+</ul>
+<h3 id="AOF"><a href="#AOF" class="headerlink" title="AOF"></a>AOF</h3><ul>
+<li><p><strong>AOF文件写入</strong><br>当过期键被删除后，会在AOF文件增加一条DEL命令，来显式地记录该键已被删除。</p>
+</li>
+<li><p><strong>AOF重写</strong><br>已过期的键不会保存到重写的AOF文件中</p>
+</li>
+</ul>
+<h3 id="复制"><a href="#复制" class="headerlink" title="复制"></a>复制</h3><p> 当服务器运行在复制模式下时，<strong>从服务器的过期键删除动作由主服务器控制的</strong>，这样的好处主要为了保持主从服务器数据一致性：</p>
+<ul>
+<li><p>主服务器在删除一个过期键之后，会显式地向所有的从服务器发送一个DEL命令，告知从服务器删除这个过期键；</p>
+</li>
+<li><p>从服务器在执行客户端发送的读取命令时，即使碰到过期键也不会将过期键删除，不作任何处理。<strong>只有接收到主服务器 DEL命令后，从服务器进行删除处理</strong>。</p>
+</li>
+</ul>
+<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><p>[1] <a href="https://juejin.im/post/5da7144ff265da5ba532b753?utm_source=gold_browser_extension" target="_blank" rel="noopener">当遇到美女面试官之如何理解Redis的Expire Key(过期键)</a></p>
+<p>[2] <a href="https://juejin.im/post/5d8bf523e51d4577ff0d9e8c" target="_blank" rel="noopener">Redis的过期策略及内存淘汰机制</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/入门/" rel="tag"><i class="fa fa-tag"></i> 入门</a>
+          
+            <a href="/tags/Redis/" rel="tag"><i class="fa fa-tag"></i> Redis</a>
+          
+            <a href="/tags/面试/" rel="tag"><i class="fa fa-tag"></i> 面试</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/11/20/Netty性能优化/" rel="next" title="Netty性能优化">
+                <i class="fa fa-chevron-left"></i> Netty性能优化
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        
+  <div class="bdsharebuttonbox">
+    <a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+    <a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网"></a>
+    <a href="#" class="bds_sqq" data-cmd="sqq" title="分享到QQ好友"></a>
+    <a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"></a>
+    <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"></a>
+    <a href="#" class="bds_tieba" data-cmd="tieba" title="分享到百度贴吧"></a>
+    <a href="#" class="bds_twi" data-cmd="twi" title="分享到Twitter"></a>
+    <a href="#" class="bds_fbook" data-cmd="fbook" title="分享到Facebook"></a>
+    <a href="#" class="bds_more" data-cmd="more"></a>
+    <a class="bds_count" data-cmd="count"></a>
+  </div>
+  <script>
+    window._bd_share_config = {
+      "common": {
+        "bdText": "",
+        "bdMini": "2",
+        "bdMiniList": false,
+        "bdPic": ""
+      },
+      "share": {
+        "bdSize": "16",
+        "bdStyle": "0"
+      },
+      "image": {
+        "viewList": ["tsina", "douban", "sqq", "qzone", "weixin", "twi", "fbook"],
+        "viewText": "分享到：",
+        "viewSize": "16"
+      }
+    }
+  </script>
+
+<script>
+  with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="Austin Brant">
+            
+              <p class="site-author-name" itemprop="name">Austin Brant</p>
+              <p class="site-description motion-element" itemprop="description">冰冻三尺,非一日之寒</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">24</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">28</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Redis-Expire-Key基础"><span class="nav-number">1.</span> <span class="nav-text">Redis Expire Key基础</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#设置过期时间命令"><span class="nav-number">1.1.</span> <span class="nav-text">设置过期时间命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#过期时间保存以及判定"><span class="nav-number">1.2.</span> <span class="nav-text">过期时间保存以及判定</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#过期键删除策略"><span class="nav-number">2.</span> <span class="nav-text">过期键删除策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#定时删除"><span class="nav-number">2.1.</span> <span class="nav-text">定时删除</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#惰性删除"><span class="nav-number">2.2.</span> <span class="nav-text">惰性删除</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#定期删除"><span class="nav-number">2.3.</span> <span class="nav-text">定期删除</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#过期键删除策略实现"><span class="nav-number">3.</span> <span class="nav-text">过期键删除策略实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#惰性删除策略的实现"><span class="nav-number">3.1.</span> <span class="nav-text">惰性删除策略的实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#定期删除策略的实现"><span class="nav-number">3.2.</span> <span class="nav-text">定期删除策略的实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Redis采用的过期策略"><span class="nav-number">4.</span> <span class="nav-text">Redis采用的过期策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#内存淘汰机制"><span class="nav-number">4.1.</span> <span class="nav-text">内存淘汰机制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AOF、RDB和复制功能对过期键的处理"><span class="nav-number">5.</span> <span class="nav-text">AOF、RDB和复制功能对过期键的处理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RDB"><span class="nav-number">5.1.</span> <span class="nav-text">RDB</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AOF"><span class="nav-number">5.2.</span> <span class="nav-text">AOF</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#复制"><span class="nav-number">5.3.</span> <span class="nav-text">复制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考文档"><span class="nav-number">6.</span> <span class="nav-text">参考文档</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Austin Brant</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_sphere.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
