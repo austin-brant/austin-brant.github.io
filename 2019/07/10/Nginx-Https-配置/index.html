@@ -81,20 +81,22 @@
 
 
 
-<meta name="description" content="Https配置简介要保证Web浏览器到服务器的安全连接，HTTPS几乎是唯一选择。HTTPS其实就是HTTP over SSL，也就是让HTTP连接建立在SSL安全连接之上。 SSL使用证书来创建安全连接。有两种验证模式：  1 仅客户端验证服务器的证书，客户端自己不提供证书；  2 客户端和服务器都互相验证对方的证书。   显然第二种方式安全性更高，一般用网上银行会这么搞，但是，Dayu服务只需">
+<meta name="description" content="Https简介要保证Web浏览器到服务器的安全连接，HTTPS几乎是唯一选择。HTTPS其实就是HTTP over SSL，也就是让HTTP连接建立在SSL安全连接之上, 并不是一个单独的应用层协议。那么对于Https, 只需要了解Http（参考HTTP详解）和SSL协议即可。而所谓的HTTPS报文也就是SSL报文：  HTTPS作用不使用SSL/TLS的HTTP通信，就是不加密的通信。所有信息明">
 <meta name="keywords" content="Nginx,Https">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Nginx Https 配置">
 <meta property="og:url" content="http://yoursite.com/2019/07/10/Nginx-Https-配置/index.html">
 <meta property="og:site_name" content="Austin Brant">
-<meta property="og:description" content="Https配置简介要保证Web浏览器到服务器的安全连接，HTTPS几乎是唯一选择。HTTPS其实就是HTTP over SSL，也就是让HTTP连接建立在SSL安全连接之上。 SSL使用证书来创建安全连接。有两种验证模式：  1 仅客户端验证服务器的证书，客户端自己不提供证书；  2 客户端和服务器都互相验证对方的证书。   显然第二种方式安全性更高，一般用网上银行会这么搞，但是，Dayu服务只需">
+<meta property="og:description" content="Https简介要保证Web浏览器到服务器的安全连接，HTTPS几乎是唯一选择。HTTPS其实就是HTTP over SSL，也就是让HTTP连接建立在SSL安全连接之上, 并不是一个单独的应用层协议。那么对于Https, 只需要了解Http（参考HTTP详解）和SSL协议即可。而所谓的HTTPS报文也就是SSL报文：  HTTPS作用不使用SSL/TLS的HTTP通信，就是不加密的通信。所有信息明">
 <meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/https_ssl_message.png">
+<meta property="og:image" content="http://yoursite.com/images/ssl_exchange_process.png">
 <meta property="og:image" content="http://yoursite.com/images/nginx-version.jpg">
-<meta property="og:updated_time" content="2019-07-11T02:08:03.171Z">
+<meta property="og:updated_time" content="2019-12-09T11:17:10.395Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Nginx Https 配置">
-<meta name="twitter:description" content="Https配置简介要保证Web浏览器到服务器的安全连接，HTTPS几乎是唯一选择。HTTPS其实就是HTTP over SSL，也就是让HTTP连接建立在SSL安全连接之上。 SSL使用证书来创建安全连接。有两种验证模式：  1 仅客户端验证服务器的证书，客户端自己不提供证书；  2 客户端和服务器都互相验证对方的证书。   显然第二种方式安全性更高，一般用网上银行会这么搞，但是，Dayu服务只需">
-<meta name="twitter:image" content="http://yoursite.com/images/nginx-version.jpg">
+<meta name="twitter:description" content="Https简介要保证Web浏览器到服务器的安全连接，HTTPS几乎是唯一选择。HTTPS其实就是HTTP over SSL，也就是让HTTP连接建立在SSL安全连接之上, 并不是一个单独的应用层协议。那么对于Https, 只需要了解Http（参考HTTP详解）和SSL协议即可。而所谓的HTTPS报文也就是SSL报文：  HTTPS作用不使用SSL/TLS的HTTP通信，就是不加密的通信。所有信息明">
+<meta name="twitter:image" content="http://yoursite.com/images/https_ssl_message.png">
 
 
 
@@ -334,8 +336,8 @@
               
                 <span class="post-meta-item-text">更新于&#58;</span>
               
-              <time title="更新于" itemprop="dateModified" datetime="2019-07-11T10:08:03+08:00">
-                2019-07-11
+              <time title="更新于" itemprop="dateModified" datetime="2019-12-09T19:17:10+08:00">
+                2019-12-09
               </time>
             
           </span>
@@ -389,7 +391,7 @@
                   <span class="post-meta-item-text">字数统计&#58;</span>
                 
                 <span title="字数统计">
-                  1.3k
+                  3.2k
                 </span>
               
 
@@ -405,7 +407,7 @@
                   <span class="post-meta-item-text">阅读时长 &asymp;</span>
                 
                 <span title="阅读时长">
-                  5
+                  12
                 </span>
               
             </div>
@@ -426,16 +428,104 @@
       
 
       
-        <h1 id="Https配置"><a href="#Https配置" class="headerlink" title="Https配置"></a>Https配置</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>要保证Web浏览器到服务器的安全连接，HTTPS几乎是唯一选择。HTTPS其实就是HTTP over SSL，也就是让HTTP连接建立在SSL安全连接之上。</p>
-<p>SSL使用证书来创建安全连接。有两种验证模式：</p>
+        <h2 id="Https简介"><a href="#Https简介" class="headerlink" title="Https简介"></a>Https简介</h2><p>要保证Web浏览器到服务器的安全连接，HTTPS几乎是唯一选择。HTTPS其实就是HTTP over SSL，也就是让HTTP连接建立在SSL安全连接之上, 并不是一个单独的应用层协议。那么对于Https, 只需要了解Http（参考HTTP详解）和SSL协议即可。而所谓的HTTPS报文也就是SSL报文：</p>
+<p><img src="/images/https_ssl_message.png" alt></p>
+<h2 id="HTTPS作用"><a href="#HTTPS作用" class="headerlink" title="HTTPS作用"></a>HTTPS作用</h2><p>不使用SSL/TLS的HTTP通信，就是不加密的通信。所有信息明文传播，带来了三大风险。</p>
+<blockquote>
+<p>（1） <strong>窃听风险</strong>（eavesdropping）：第三方可以获知通信内容。</p>
+</blockquote>
+<blockquote>
+<p>（2） <strong>篡改风险</strong>（tampering）：第三方可以修改通信内容。</p>
+</blockquote>
+<blockquote>
+<p>（3） <strong>冒充风险</strong>（pretending）：第三方可以冒充他人身份参与通信。</p>
+</blockquote>
+<p>SSL/TLS协议是为了解决这三大风险而设计的，希望达到：</p>
+<blockquote>
+<p>（1） 所有信息都是<strong>加密传播</strong>，第三方无法窃听。</p>
+</blockquote>
+<blockquote>
+<p>（2） 具有<strong>校验机制</strong>，一旦被篡改，通信双方会立刻发现。</p>
+</blockquote>
+<blockquote>
+<p>（3） 配备<strong>身份证书</strong>，防止身份被冒充。</p>
+</blockquote>
+<h2 id="SSL协议"><a href="#SSL协议" class="headerlink" title="SSL协议"></a>SSL协议</h2><p>SSL（Secure Socket Layer）安全套接层，是一种位于应用层与传输层之间，为网络通信提供安全及完整性验证的一种网络协议。<br>相对于TCP或HTTP协议，SSL协议要复杂很多。由于它也是建立在TCP协议之上的，所以在使用SSL传输数据之前需要先进行三次握手和服务器建立连接，具体的流程如图所示：</p>
+<p><img src="/images/ssl_exchange_process.png" alt></p>
+<p><strong>SSL协议的握手过程</strong></p>
+<ul>
+<li><p>(1) 客户端先给服务端发送一个消息，消息内容包括：客户端支持的<strong>加密方式</strong>，支持的<strong>压缩方法</strong>，<strong>SSL的版本号</strong>，<strong>客户端生成的随机数</strong>，文本内容“Hello”等；</p>
+</li>
+<li><p>(2) 服务端接收到消息后，也回复一个Hello，并携带从客户端支持的加密方式中<strong>选择的加密方式</strong>，<strong>服务端生成的随机数</strong>，<strong>服务端的SSL版本号</strong>等信息；</p>
+</li>
+<li><p>(3) 随后服务器给客户端发送一个<strong>Certificate报文</strong>，报文中包含服务端的<strong>公钥证书</strong>；</p>
+</li>
+<li><p>(4) 紧接着服务器给客户端发送Server Hello Done, 表示<strong>最初的协商握手过程</strong>结束；</p>
+</li>
+<li><p>(5) 客户端接收到服务端发送的握手结束的消息后，以<strong>Client Key Exchange</strong>作为回应，此报文中包含通信加密过程中使用的一种被称为<strong>Pre-master secret的随机密码串</strong>，并使用第三步接收到的公钥证书进行了加密；</p>
+</li>
+<li><p>(6) 接着客户端发送<strong>Change Cipher Spec报文</strong>，该报文告知服务端，此步骤之后的所有数据将使用第五步中生成的master secret进行加密（master secret的生成过程看后面的介绍）；</p>
+</li>
+<li><p>(7) 随后客户端发送<strong>Finish报文</strong>，此报文中包含<strong>连接至今所有报文的整体校验值</strong>，用于完整性验证；</p>
+</li>
+<li><p>(8) 服务端接收到客户端发送的<strong>Change Cliper Spec报文</strong>后，同样以<strong>Change Cliper Spec报文</strong> 作为回应；</p>
+</li>
+<li><p>(9) 接着服务端发送<strong>Finish报文</strong>给客户端，表示服务端已正确解析客户端发送的整体校验值，至此，SSL握手的过程结束。</p>
+</li>
+</ul>
+<p>随后开始使用HTTP协议传输<strong>使用master secret加密过</strong>的数据。</p>
+<p><strong>说明</strong></p>
+<ul>
+<li><p>前两步是协商加密算法以及传输各自生成的随机数（为后续生成master secret做准备）的过程；</p>
+</li>
+<li><p>第三步服务端将自己的证书发送给客户端，这个证书中包含一个数字签名（<strong>CA签名</strong>）和服务端<strong>CA证书的公钥</strong>，客户端对证书中包含的服务端信息进行Hash, 同时使用接收到的公钥对数字证书解密，获取其中的Hash值，与前面计算得到的Hash值进行比较，即可验证证书的有效性（完整性&amp;真实性）；</p>
+</li>
+<li><p>服务端收到客户端发送的Change Cipher Spec（第五步），会使用自己的私钥进行解密，获取报文中的<strong>Pre-master secret</strong>，这时通信双方都拥有对方的Random(前两步生成的)，Pre-master secret，以及自身的Random, 将<strong>三个数作为种子通过算法生成master secret</strong>, 用来加密后续Http请求过程中的数据。其中master secret的生成规则为:</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">master_secret =</span><br><span class="line">MD5(pre_master_secret + SHA(&apos;A&apos; + pre_master_secret + ClientHello.random + ServerHello.random)) +</span><br><span class="line"></span><br><span class="line">MD5(pre_master_secret + SHA(&apos;BB&apos; + pre_master_secret + ClientHello.random + ServerHello.random)) +</span><br><span class="line"></span><br><span class="line">MD5(pre_master_secret + SHA(&apos;CCC&apos; + pre_master_secret + ClientHello.random +    ServerHello.random));</span><br></pre></td></tr></table></figure>
+
+<h2 id="CA证书"><a href="#CA证书" class="headerlink" title="CA证书"></a>CA证书</h2><ul>
+<li><p>私钥<br>私钥就是一个算法名称加上密码串，自己保存，从不给任何人看</p>
+</li>
+<li><p>公钥<br>公钥也是一个算法名称加上密码串，一般不会单独给别人，而是嵌在证书里面一起给别人</p>
+</li>
+<li><p>CA<br>专门用自己的私钥给别人进行签名的单位或者机构</p>
+</li>
+<li><p>申请（签名）文件<br>在<strong>公钥的基础上加上一些申请人的属性信息</strong>，比如我是谁，来自哪里，名字叫什么，证书适用于什么场景等的信息，然后带上进行的签名，发给CA（私下安全的方式发送），带上自己签名的目的是为了防止别人篡改文件。</p>
+</li>
+<li><p>证书文件<br>证书由<strong>公钥加上描述信息，然后经过私钥签名之后得到</strong>，一般都是一个人的私钥给另一个人的公钥签名，如果是<strong>自己的私钥给自己的公钥签名，就叫自签名</strong>。</p>
+</li>
+<li><p>签名过程<br>CA收到申请文件后，会走核实流程，确保申请人确实是证书中描述的申请人，防止别人冒充申请者申请证书，核实通过后，会用<strong>CA的私钥对申请文件进行签名，签名后的证书包含申请者的基本信息，CA的基本信息，证书的使用年限，申请人的公钥，签名用到的摘要算法，CA的签名</strong>。</p>
+</li>
+</ul>
+<p>签完名之后，证书就可以用了。</p>
+<h2 id="证书如何验证"><a href="#证书如何验证" class="headerlink" title="证书如何验证"></a>证书如何验证</h2><p>下面以浏览器为例，说明证书的验证过程：</p>
+<ul>
+<li><p>在TLS握手的过程中，浏览器得到了网站的证书</p>
+</li>
+<li><p>打开证书，查看是哪个CA签名的这个证书</p>
+</li>
+<li><p>在自己信任的CA库中，找相应CA的证书，</p>
+</li>
+<li><p>用CA证书里面的公钥解密网站证书上的签名，取出网站证书的校验码（指纹），然后用同样的算法（比如sha256）算出出网站证书的校验码，如果校验码和签名中的校验码对的上，说明这个证书是合法的，且没被人篡改过</p>
+</li>
+<li><p>读出里面的CN，对于网站的证书，里面一般包含的是域名</p>
+</li>
+<li><p>检查里面的域名和自己访问网站的域名对不对的上，对的上的话，就说明这个证书确实是颁发给这个网站的</p>
+</li>
+</ul>
+<p>到此为止检查通过。</p>
+<p>如果浏览器发现证书有问题，<strong>一般是证书里面的签名者不是浏览器认为值得信任的CA</strong>，浏览器就会给出警告页面，这时候需要谨慎，有可能证书被掉包了。如访问12306网站，由于12306的证书是自己签的名，并且浏览器不认为12306是受信的CA，所以就会给警告，但是一旦你把12306的根证书安装到了你的浏览器中，那么下次就不会警告了，因为你配置了浏览器让它相信12306是一个受信的CA。</p>
+<h2 id="SSL证书类型"><a href="#SSL证书类型" class="headerlink" title="SSL证书类型"></a>SSL证书类型</h2><p>SSL使用证书来创建安全连接。有两种验证模式：</p>
 <ul>
 <li><p>1 仅客户端验证服务器的证书，客户端自己不提供证书；</p>
 </li>
 <li><p>2 客户端和服务器都互相验证对方的证书。</p>
 </li>
 </ul>
-<p>显然第二种方式安全性更高，一般用网上银行会这么搞，但是，Dayu服务只需要采用第一种方式就可以。</p>
-<h2 id="SSL证书"><a href="#SSL证书" class="headerlink" title="SSL证书"></a>SSL证书</h2><p>服务器自己的证书必须经过某“权威”证书的签名，而这个“权威”证书又可能经过更权威的证书签名，这么一级一级追溯上去，最顶层那个最权威的证书就称为根证书。根证书直接内置在浏览器中，这样，浏览器就可以利用自己自带的根证书去验证某个服务器的证书是否有效。</p>
+<p>显然第二种方式安全性更高，一般用网上银行会这么搞，但是，大部分服务只需要采用第一种方式就可以。</p>
+<p>服务器自己的证书必须经过某“权威”证书的签名，而这个“权威”证书又可能经过更权威的证书签名，这么一级一级追溯上去，最顶层那个最权威的证书就称为根证书。根证书直接内置在浏览器中，这样，浏览器就可以利用自己自带的根证书去验证某个服务器的证书是否有效。</p>
 <p>SSL证书级别分为三种类型，域名型SSL证书（DV SSL）、企业型SSL证书（OVSSL）、增强型SSL证书（EVSSL）</p>
 <h3 id="1-域名型-SSL-证书（DV-SSL-Domain-Validation-SSL）"><a href="#1-域名型-SSL-证书（DV-SSL-Domain-Validation-SSL）" class="headerlink" title="1. 域名型 SSL 证书（DV SSL - Domain Validation SSL）"></a>1. 域名型 SSL 证书（DV SSL - Domain Validation SSL）</h3><p>即证书颁布机构只对域名的所有者进行在线检查，通常是验证域名下某个指定文件的内容，或者验证与域名相关的某条 TXT 记录；</p>
 <p>比如访问 [http|https]://<a href="http://www.mimvp.com/.../test.txt，文件内容：" target="_blank" rel="noopener">www.mimvp.com/.../test.txt，文件内容：</a> 2016082xxxxxmimvpcom2016</p>
@@ -448,9 +538,6 @@
 <p>这样一来证书所绑定的网站就更加的可靠、可信。</p>
 <p>它跟普通 SSL 证书的区别也是明显的，安全浏览器的地址栏变绿，</p>
 <p>如果是不受信的 SSL 证书则拒绝显示，如果是钓鱼网站，地址栏则会变成红色，以警示用户。</p>
-<blockquote>
-<p>证书获取在此就不详细介绍了</p>
-</blockquote>
 <h2 id="自签名证书生成"><a href="#自签名证书生成" class="headerlink" title="自签名证书生成"></a>自签名证书生成</h2><p>下面简单介绍如何创建一个自签名的SSL证书。执行脚本create_cert.sh即可。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 生成秘钥key</span></span><br><span class="line"><span class="comment">## 会有两次要求输入密码,输入同一个即可,</span></span><br><span class="line"><span class="comment">## 然后你就获得了一个server.key文件.</span></span><br><span class="line">openssl genrsa -des3 -out server.key 2048</span><br><span class="line"></span><br><span class="line"><span class="comment">## 以后使用此文件(通过openssl提供的命令或API)可能经常回要求输入密码</span></span><br><span class="line"><span class="comment">## 如果想去除输入密码的步骤可以使用以下命令:</span></span><br><span class="line">openssl rsa -<span class="keyword">in</span> server.key -out server.key</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">## 创建服务器证书的申请文件server.csr</span></span><br><span class="line"><span class="comment">## 其中Country Name填CN,Common Name填主机名也可以不填,如果不填浏览器会认为不安全.</span></span><br><span class="line"><span class="comment">## (例如你以后的url为https://abcd/xxxx....这里就可以填abcd),其他的都可以不填.</span></span><br><span class="line">openssl req -new -key server.key -out server.csr</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">## 创建CA证书</span></span><br><span class="line"><span class="comment">## 此时,你可以得到一个ca.crt的证书,这个证书用来给自己的证书签名.</span></span><br><span class="line">openssl req -new -x509 -key server.key -out ca.crt -days 3650</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">## 创建自当前日期起有效期为期十年的服务器证书server.crt</span></span><br><span class="line">openssl x509 -req -days 3650 -<span class="keyword">in</span> server.csr -CA ca.crt -CAkey server.key -CAcreateserial -out server.crt</span><br></pre></td></tr></table></figure>
 
@@ -623,7 +710,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">29</span>
+                  <span class="site-state-item-count">30</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -685,7 +772,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Https配置"><span class="nav-number">1.</span> <span class="nav-text">Https配置</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SSL证书"><span class="nav-number">1.2.</span> <span class="nav-text">SSL证书</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-域名型-SSL-证书（DV-SSL-Domain-Validation-SSL）"><span class="nav-number">1.2.1.</span> <span class="nav-text">1. 域名型 SSL 证书（DV SSL - Domain Validation SSL）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-企业型-SSL-证书（OV-SSL-Organization-Validation-SSL）"><span class="nav-number">1.2.2.</span> <span class="nav-text">2. 企业型 SSL 证书（OV SSL - Organization Validation SSL）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-增强型-SSL-证书（EV-SSL-Extended-Validation-SSL）"><span class="nav-number">1.2.3.</span> <span class="nav-text">3. 增强型 SSL 证书（EV SSL - Extended Validation SSL）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自签名证书生成"><span class="nav-number">1.3.</span> <span class="nav-text">自签名证书生成</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置nginx"><span class="nav-number">1.4.</span> <span class="nav-text">配置nginx</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-查看nginx是否安装了ssl模块"><span class="nav-number">1.4.1.</span> <span class="nav-text">(1) 查看nginx是否安装了ssl模块</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Https简介"><span class="nav-number">1.</span> <span class="nav-text">Https简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HTTPS作用"><span class="nav-number">2.</span> <span class="nav-text">HTTPS作用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SSL协议"><span class="nav-number">3.</span> <span class="nav-text">SSL协议</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CA证书"><span class="nav-number">4.</span> <span class="nav-text">CA证书</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#证书如何验证"><span class="nav-number">5.</span> <span class="nav-text">证书如何验证</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SSL证书类型"><span class="nav-number">6.</span> <span class="nav-text">SSL证书类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-域名型-SSL-证书（DV-SSL-Domain-Validation-SSL）"><span class="nav-number">6.1.</span> <span class="nav-text">1. 域名型 SSL 证书（DV SSL - Domain Validation SSL）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-企业型-SSL-证书（OV-SSL-Organization-Validation-SSL）"><span class="nav-number">6.2.</span> <span class="nav-text">2. 企业型 SSL 证书（OV SSL - Organization Validation SSL）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-增强型-SSL-证书（EV-SSL-Extended-Validation-SSL）"><span class="nav-number">6.3.</span> <span class="nav-text">3. 增强型 SSL 证书（EV SSL - Extended Validation SSL）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自签名证书生成"><span class="nav-number">7.</span> <span class="nav-text">自签名证书生成</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置nginx"><span class="nav-number">8.</span> <span class="nav-text">配置nginx</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-查看nginx是否安装了ssl模块"><span class="nav-number">8.1.</span> <span class="nav-text">(1) 查看nginx是否安装了ssl模块</span></a></li></ol></li></ol></div>
             
 
           </div>

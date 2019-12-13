@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Java,Jvm,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Austin Brant" type="application/atom+xml">
+
+
+
+
+
+
+<meta name="description" content="JDK体系结构 JVM内存模型一张图描述JVM内存模型 JVM包括两个子系统和两个组件： 两个子系统 ClassLoader（类装载）根据给定的全限定名类名(如：java.lang.Object)来装载 class文件 到 运行时数据区 中的 方法区。程序中可以继承 java.lang.ClassLoader 类来实现自己的ClassLoader。  ExecutionEngine（执行引擎）执行">
+<meta name="keywords" content="Java,Jvm">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM基础 - 入门篇">
+<meta property="og:url" content="http://yoursite.com/2019/12/13/JVM基础-入门篇/index.html">
+<meta property="og:site_name" content="Austin Brant">
+<meta property="og:description" content="JDK体系结构 JVM内存模型一张图描述JVM内存模型 JVM包括两个子系统和两个组件： 两个子系统 ClassLoader（类装载）根据给定的全限定名类名(如：java.lang.Object)来装载 class文件 到 运行时数据区 中的 方法区。程序中可以继承 java.lang.ClassLoader 类来实现自己的ClassLoader。  ExecutionEngine（执行引擎）执行">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/jdk_structure.jpg">
+<meta property="og:image" content="http://yoursite.com/images/jvm_structure.png">
+<meta property="og:image" content="http://yoursite.com/images/jvm_thread_stack.png">
+<meta property="og:image" content="http://yoursite.com/images/eden_survior.jpg">
+<meta property="og:image" content="http://yoursite.com/images/jvm_math_snapshot.png">
+<meta property="og:image" content="http://yoursite.com/images/jvm_fenpei_danbao.jpg">
+<meta property="og:image" content="http://yoursite.com/images/jvm_mark_swep.jpg">
+<meta property="og:image" content="http://yoursite.com/images/jvm_copy.jpg">
+<meta property="og:image" content="http://yoursite.com/images/jvm_mark_zhengli.jpg">
+<meta property="og:image" content="http://yoursite.com/images/jvm_fendai_collection.jpg">
+<meta property="og:image" content="http://yoursite.com/images/java_gc_collectors.png">
+<meta property="og:image" content="http://yoursite.com/images/java_gc_serial.jpg">
+<meta property="og:image" content="http://yoursite.com/images/java_gc_parnew.jpg">
+<meta property="og:image" content="http://yoursite.com/images/java_gc_scavenge.jpg">
+<meta property="og:image" content="http://yoursite.com/images/java_gc_cms-collec.jpg">
+<meta property="og:image" content="http://yoursite.com/images/java_cms_advantage.jpg">
+<meta property="og:image" content="http://yoursite.com/images/java_cms_parameter.jpg">
+<meta property="og:image" content="http://yoursite.com/images/java_gc_g1.jpg">
+<meta property="og:image" content="http://yoursite.com/images/java_gc_g1_process.jpg">
+<meta property="og:image" content="http://yoursite.com/images/java_gc_g1_class.jpg">
+<meta property="og:image" content="http://yoursite.com/images/jvm_full_gc_optimize.jpg">
+<meta property="og:updated_time" content="2019-12-13T12:40:51.427Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JVM基础 - 入门篇">
+<meta name="twitter:description" content="JDK体系结构 JVM内存模型一张图描述JVM内存模型 JVM包括两个子系统和两个组件： 两个子系统 ClassLoader（类装载）根据给定的全限定名类名(如：java.lang.Object)来装载 class文件 到 运行时数据区 中的 方法区。程序中可以继承 java.lang.ClassLoader 类来实现自己的ClassLoader。  ExecutionEngine（执行引擎）执行">
+<meta name="twitter:image" content="http://yoursite.com/images/jdk_structure.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/12/13/JVM基础-入门篇/">
+
+
+
+
+
+  <title>JVM基础 - 入门篇 | Austin Brant</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Austin Brant</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/13/JVM基础-入门篇/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Austin Brant">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Austin Brant">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">JVM基础 - 入门篇</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-13T16:15:47+08:00">
+                2019-12-13
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2019-12-13T20:40:51+08:00">
+                2019-12-13
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/JVM/" itemprop="url" rel="index">
+                    <span itemprop="name">JVM</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  3.7k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  13
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="JDK体系结构"><a href="#JDK体系结构" class="headerlink" title="JDK体系结构"></a>JDK体系结构</h1><p><img src="/images/jdk_structure.jpg" alt></p>
+<h1 id="JVM内存模型"><a href="#JVM内存模型" class="headerlink" title="JVM内存模型"></a>JVM内存模型</h1><p>一张图描述JVM内存模型<br><img src="/images/jvm_structure.png" alt></p>
+<p>JVM包括两个子系统和两个组件：</p>
+<h2 id="两个子系统"><a href="#两个子系统" class="headerlink" title="两个子系统"></a>两个子系统</h2><ul>
+<li><p><strong>ClassLoader（类装载）</strong><br>根据给定的全限定名类名(如：java.lang.Object)来装载 class文件 到 <strong>运行时数据区</strong> 中的 <strong>方法区</strong>。程序中可以继承 <code>java.lang.ClassLoader</code> 类来实现自己的ClassLoader。</p>
+</li>
+<li><p><strong>ExecutionEngine（执行引擎）</strong><br>执行classes中的指令。任何JVM <code>specification</code>实现(JDK)的核心都是Execution engine，不同的JDK例如Sun的JDK和IBM的JDK好坏主要就取决于他们各自实现的Execution engine的好坏。</p>
+</li>
+</ul>
+<h2 id="两个组件"><a href="#两个组件" class="headerlink" title="两个组件"></a>两个组件</h2><ul>
+<li><p><strong>Native Interface(本地接口)</strong><br>与native libraries交互，是其它编程语言交互的接口。当调用native方法的时候，就进入了一个全新的并且不再受虚拟机限制的世界，所以也很容易出现JVM无法控制的native heap OutOfMemory。</p>
+</li>
+<li><p><strong>Runtime Data Area（运行时数据区）</strong><br>这就是我们常说的JVM的内存。主要分为五个部分：</p>
+<h3 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h3><p>有时候也成为<strong>永久代</strong>，该区域是被<strong>线程共享</strong>的。</p>
+</li>
+<li><p>作用<br>方法区主要用来存储已被虚拟机加载的<strong>类的信息</strong>、<strong>常量</strong>、<strong>静态变量</strong> 和 <strong>即时编译器(JIT)编译后的代码</strong> 等数据.</p>
+</li>
+<li><p>GC<br>在该区内很少发生垃圾回收，但是并不代表不发生GC，在这里进行的GC主要是 <strong>对方法区里的常量池和对类型的卸载</strong>，但<strong>回收效率很低</strong>，当方法区无法满足内存需求时，会报 <strong>OOM</strong> 异常；</p>
+</li>
+</ul>
+<p>方法区里有一个<strong>运行时常量池</strong>，用于存放<strong>静态编译产生的字面量和符号引用</strong>。该常量池具有动态性，也就是说常量并不一定是编译时确定，<strong>运行时生成的常量也会存在这个常量池</strong>中。</p>
+<blockquote>
+<p><strong>方法区和元数据区是不同jdk版本对JVM协议的不同实现；</strong></p>
+</blockquote>
+<h3 id="虚拟机栈"><a href="#虚拟机栈" class="headerlink" title="虚拟机栈"></a>虚拟机栈</h3><p>虚拟机栈也就是我们平常所称的栈内存, 它为java方法服务，每个方法在执行的时候都会创建一个栈帧，用于存储<strong>局部变量表</strong>、<strong>操作数栈</strong>、<strong>动态链接</strong> 和 <strong>方法出口</strong>等信息。<br><img src="/images/jvm_thread_stack.png" alt="-w728"></p>
+<ul>
+<li><p><strong>虚拟机栈</strong><br>是线程私有的，它的<strong>生命周期与线程相同</strong>。每个方法从调用到执行过程，就对应着栈桢在虚拟机栈中从入栈到出栈的过程。</p>
+</li>
+<li><p><strong>栈桢</strong><br>虚拟机栈由多个栈桢（Stack Frame）组成。一个线程会执行一个或多个方法，一个方法对应一个栈桢。</p>
+</li>
+<li><p><strong>局部变量表</strong><br>局部变量表里存储的是<strong>基本数据类型</strong>、<strong>returnAddress类型</strong>（指向一条字节码指令的地址）和<strong>对象引用</strong>，这个对象引用有可能是指向对象起始地址的一个指针，也有可能是代表对象的句柄或者与对象相关联的位置。<strong>局部变量所需的内存空间在编译器间确定</strong>。</p>
+</li>
+<li><p><strong>操作数栈</strong><br>操作数栈的作用主要用来<strong>存储运算结果以及运算的操作数</strong>，它不同于局部变量表通过索引来访问，而是<strong>压栈和出栈的方式</strong></p>
+</li>
+</ul>
+<p>每个栈帧都包含一个指向运行时常量池中<strong>该栈帧所属方法的引用</strong>，持有这个引用是为了<strong>支持方法调用过程中的动态连接</strong>. 动态链接就是<strong>将常量池中的符号引用在运行期转化为直接引用</strong>。</p>
+<h3 id="本地方法栈"><a href="#本地方法栈" class="headerlink" title="本地方法栈"></a>本地方法栈</h3><p>本地方法栈和虚拟机栈类似，虚拟机栈是为虚拟机执行Java方法而准备的，而本地方法栈为虚拟机执行Native本地方法而准备的。</p>
+<h3 id="堆（Heap）"><a href="#堆（Heap）" class="headerlink" title="堆（Heap）"></a>堆（Heap）</h3><p>Java堆是所有线程所共享的一块内存。</p>
+<p>在虚拟机启动时创建，几乎所有的对象实例、数组都在这里存放，对于大多数应用来说，堆是JVM管理的内存中最大的一块区域，也是最容易发生OOM的区域，因此该区域经常发生垃圾回收操作。</p>
+<p>大多数JVM都会将堆实现为大小可扩展的，通过-Xmx、-Xms等参数控制。</p>
+<p><img src="/images/eden_survior.jpg" alt></p>
+<p>新生的对象默认放在Eden区, Eden区满了会触发minor GC/yong GC;</p>
+<h3 id="程序计数器"><a href="#程序计数器" class="headerlink" title="程序计数器"></a>程序计数器</h3><p>占用内存空间小，字节码解释器工作时通过改变这个计数值可以<strong>选取下一条需要执行的字节码指令</strong>，<strong>分支、循环、跳转、异常处理和线程恢复</strong>等功能都需要依赖这个计数器完成。该内存区域是唯一一个java虚拟机规范没有规定任何OOM情况的区域。</p>
+<h1 id="JVM内存快照示例"><a href="#JVM内存快照示例" class="headerlink" title="JVM内存快照示例"></a>JVM内存快照示例</h1><p>基于上述原理，现在写一个简单的代码来举例描述下具体各个区域是怎么分配的。</p>
+<blockquote>
+<p>Math.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Math</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> initData = <span class="number">666</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compute</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> a = <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">int</span> b = <span class="number">2</span>;</span><br><span class="line">        <span class="keyword">int</span> c = (a + b) * <span class="number">10</span>;</span><br><span class="line">        <span class="keyword">return</span> c;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Math math = <span class="keyword">new</span> Math();</span><br><span class="line">        <span class="keyword">int</span> result = math.compute();</span><br><span class="line">        System.out.println(result);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>javap是jdk自带的一个工具在jdk安装目录的/bin下面可以找到，可以对代码反编译，也可以查看java编译器生成的字节码，对代码的执行过程进行分析，了解jvm内部的工作。</p>
+</blockquote>
+<p>通过以下指令可以得到Java字节码指令：</p>
+<blockquote>
+<p>javac Math.java<br>javap -c Math.class &gt; Math.txt</p>
+</blockquote>
+<p>Math.txt(为了便于编译，Math.txt中去掉了User相关内容)</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">Compiled from <span class="string">"Math.java"</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Math</span> </span>&#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> initData;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> User user  = <span class="keyword">new</span> User();</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">Math</span><span class="params">()</span></span>;</span><br><span class="line">    Code:</span><br><span class="line">       <span class="number">0</span>: aload_0</span><br><span class="line">       1: invokespecial #1     // Method java/lang/Object."&lt;init&gt;":()V</span><br><span class="line">       <span class="number">4</span>: <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compute</span><span class="params">()</span></span>;</span><br><span class="line">    Code:</span><br><span class="line">       <span class="number">0</span>: iconst_1</span><br><span class="line">       <span class="number">1</span>: istore_1</span><br><span class="line">       <span class="number">2</span>: iconst_2</span><br><span class="line">       <span class="number">3</span>: istore_2</span><br><span class="line">       <span class="number">4</span>: iload_1</span><br><span class="line">       <span class="number">5</span>: iload_2</span><br><span class="line">       <span class="number">6</span>: iadd</span><br><span class="line">       <span class="number">7</span>: bipush        <span class="number">10</span>  </span><br><span class="line">       <span class="number">9</span>: imul</span><br><span class="line">      <span class="number">10</span>: istore_3</span><br><span class="line">      <span class="number">11</span>: iload_3</span><br><span class="line">      <span class="number">12</span>: ireturn</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(java.lang.String[])</span></span>;</span><br><span class="line">    Code:</span><br><span class="line">       0: new           #2      // class Math</span><br><span class="line">       <span class="number">3</span>: dup </span><br><span class="line">       4: invokespecial #3      // Method "&lt;init&gt;":()V</span><br><span class="line">       <span class="number">7</span>: astore_1</span><br><span class="line">       <span class="number">8</span>: aload_1</span><br><span class="line">       9: invokevirtual #4      // Method compute:()I</span><br><span class="line">      <span class="number">12</span>: istore_2</span><br><span class="line">      13: getstatic     #5      // Field java/lang/System.out:Ljava/io/PrintStream;</span><br><span class="line">      <span class="number">16</span>: iload_2</span><br><span class="line">      17: invokevirtual #6      // Method java/io/PrintStream.println:(I)V</span><br><span class="line">      <span class="number">20</span>: <span class="keyword">return</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过查询<a href="https://gist.github.com/pwxcoo/d8b321c24ccf031c3ee94ff36bc857d4" target="_blank" rel="noopener">javap 字节码指令集</a>，可以看到每一步操作:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">栈和局部变量操作 </span><br><span class="line">将常量压入栈的指令 </span><br><span class="line">aconst_null 将<span class="keyword">null</span>对象引用压入栈 </span><br><span class="line">iconst_m1 将<span class="keyword">int</span>类型常量-<span class="number">1</span>压入栈 </span><br><span class="line">iconst_0 将<span class="keyword">int</span>类型常量<span class="number">0</span>压入栈 </span><br><span class="line">iconst_1 将<span class="keyword">int</span>类型常量<span class="number">1</span>压入栈 </span><br><span class="line">iconst_2 将<span class="keyword">int</span>类型常量<span class="number">2</span>压入栈 </span><br><span class="line">iconst_3 将<span class="keyword">int</span>类型常量<span class="number">3</span>压入栈 </span><br><span class="line">iconst_4 将<span class="keyword">int</span>类型常量<span class="number">4</span>压入栈 </span><br><span class="line">iconst_5 将<span class="keyword">int</span>类型常量<span class="number">5</span>压入栈 </span><br><span class="line">lconst_0 将<span class="keyword">long</span>类型常量<span class="number">0</span>压入栈 </span><br><span class="line">lconst_1 将<span class="keyword">long</span>类型常量<span class="number">1</span>压入栈 </span><br><span class="line">fconst_0 将<span class="keyword">float</span>类型常量<span class="number">0</span>压入栈 </span><br><span class="line">fconst_1 将<span class="keyword">float</span>类型常量<span class="number">1</span>压入栈 </span><br><span class="line">dconst_0 将<span class="keyword">double</span>类型常量<span class="number">0</span>压入栈 </span><br><span class="line">dconst_1 将<span class="keyword">double</span>类型常量<span class="number">1</span>压入栈 </span><br><span class="line">bipush 将一个<span class="number">8</span>位带符号整数压入栈 </span><br><span class="line">sipush 将<span class="number">16</span>位带符号整数压入栈 </span><br><span class="line">....</span><br></pre></td></tr></table></figure>
+
+<p>此时内存区域如下图所示：</p>
+<p><img src="/images/jvm_math_snapshot.png" alt></p>
+<h1 id="垃圾回收"><a href="#垃圾回收" class="headerlink" title="垃圾回收"></a>垃圾回收</h1><p><strong>Minor GC和Full GC区别</strong></p>
+<ul>
+<li>Minor GC/Young GC: 指新生代发生的垃圾收集动作，Minor GC非常频繁，回收速度一般比较快；</li>
+<li>Major GC/Full GC: 一般会回收老年代，年轻代，方法区（永久区）的垃圾，Major GC的速度一般会比Minor GC慢10倍以上。<h2 id="JVM内存分配与回收策略"><a href="#JVM内存分配与回收策略" class="headerlink" title="JVM内存分配与回收策略"></a>JVM内存分配与回收策略</h2><h3 id="对象优先在Eden区分配"><a href="#对象优先在Eden区分配" class="headerlink" title="对象优先在Eden区分配"></a>对象优先在Eden区分配</h3>大多数情况下，对象在新生代中Eden区分配，当Eden区没有足够空间时，虚拟机将发起一次Minor GC.</li>
+</ul>
+<h3 id="长期存活的对象将进入老年代"><a href="#长期存活的对象将进入老年代" class="headerlink" title="长期存活的对象将进入老年代"></a>长期存活的对象将进入老年代</h3><ul>
+<li><p>既然虚拟机采用了分代收集的思想来管理内存，那么内存回收时就必须识别哪些对象应该放在新生代，哪些需要放在老年代。为了做到这一点，虚拟机给每个对象一个对象年龄（Age）计数器。</p>
+</li>
+<li><p>如果对象在Eden区出生并经过一次minor gc后仍然存活，并且大小能被Survivor容纳的话，将会移动到另一个Survivor区，并将对象年龄设为1。对象在Survivor中每熬过一次minor gc，年龄就增1岁，当增加到一定大小（默认为15岁），就会晋升到老年代。对象晋升到老年代的年龄阈值可以通过<code>-XX:MaxTenuringThreshold</code>来设置。</p>
+</li>
+</ul>
+<h3 id="大对象直接进入老年代"><a href="#大对象直接进入老年代" class="headerlink" title="大对象直接进入老年代"></a>大对象直接进入老年代</h3><ul>
+<li><p>大对象就是需要大量连续内存空间的对象，比如：长字符串、数组</p>
+</li>
+<li><p>JVM参数<code>-神器:PretenureSizeThreshold</code>可以设置大对象的大小，如果对象超过了设置大小，在创建时就会直接进入老年代，不会进入年轻代，这个参数只在<strong>Serial</strong>和<strong>ParNew</strong>两个收集器下有效</p>
+</li>
+<li><p>例如 <code>-神器:PretenureSizeThreshold=1000000 -XX:+UseSerialGC</code></p>
+</li>
+<li><p>这么做的目的：<strong>避免为大对象分配内存时的复制操作而降低效率</strong>；</p>
+</li>
+</ul>
+<h3 id="对象动态年龄判断"><a href="#对象动态年龄判断" class="headerlink" title="对象动态年龄判断"></a>对象动态年龄判断</h3><ul>
+<li><p>当前放置对象的Survivor区域里（另一块Survivor为空），一批对象的总大小大于这块Survivor区域内存大小的50%，那么此时大于这批对象年龄最大值的对象，就可以直接提前进入老年代了；</p>
+</li>
+<li><p>例如Survivor区域里现有一批对象：<code>年龄为1对象 + 年龄为2对象 + ... +  年龄为n对象</code> 所占空间总和超过了Survivor区总大小的50%，此时就会把年龄大于n的对象提前放入老年代；</p>
+</li>
+</ul>
+<h3 id="老年代空间分配担保机制"><a href="#老年代空间分配担保机制" class="headerlink" title="老年代空间分配担保机制"></a>老年代空间分配担保机制</h3><p>年轻代每次Minor gc之前，JVM都会计算下老年代剩余可用空间：</p>
+<ul>
+<li><p>如果老年代剩余可用空间小于年轻代里现有的所有对象的大小之和（包括垃圾对象），就会看一个 <code>-神器:-HandlePromotionFailure</code> （JDK1.8默认就设置了）的参数是否配置了，如果有这个参数，就会看看老年代的可用内存大小，是否大于之前每次minor gc后进入老年代的对象平均大小；</p>
+</li>
+<li><p>如果上一步结果是小于或者没有设置该参数，JVM就会发起一次Full GC，对老年代和年轻代一起进行垃圾回收；</p>
+</li>
+<li><p>如果上一步结果是大于该参数，正常进行Minor GC;当然如果Minor GC后，剩余存活对象里需要移动到老年代的总大小超过了老年代可用空间，还是会触发Full GC;</p>
+</li>
+<li><p>如果回收完还是没有足够空间存放新建的对象，就会发生 <strong>OOM</strong>；</p>
+</li>
+</ul>
+<p><img src="/images/jvm_fenpei_danbao.jpg" alt></p>
+<h2 id="垃圾对象判断"><a href="#垃圾对象判断" class="headerlink" title="垃圾对象判断"></a>垃圾对象判断</h2><p>如何判断一个对象是否可以被回收，常见的做法有两种：</p>
+<h3 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h3><p>给对象头中添加一个引用计数器，每当有一个地方引用它，就给它的计数器+1；当引用失效，计数器就-1；只要计数器为0，就表示当前对象没有被使用，可以被回收。</p>
+<ul>
+<li><p><strong>优点</strong><br>引用计数收集器可以很快的执行，交织在程序运行中。对程序需要不被长时间打断的实时环境比较有利。</p>
+</li>
+<li><p><strong>缺点</strong><br>无法检测出循环引用。如父对象有一个对子对象的引用，子对象反过来引用父对象。这样，他们的引用计数永远不可能为0.</p>
+</li>
+</ul>
+<p>Java的引用类型一般分为四种：</p>
+<ul>
+<li><p><strong>强引用</strong><br>普通的变量引用；</p>
+</li>
+<li><p><strong>软引用</strong><br>将对象用SoftReference软引用类型的对象包裹，正常情况下不会被回收，但是GC做完之后发现释放不出空间存放新对象，就会把这些软引用的对象回收掉。软引用可用来实现对内存敏感度不高的高速缓存。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> SoftReference&lt;User&gt;  user = <span class="keyword">new</span> SoftReference&lt;User&gt;(<span class="keyword">new</span> User());</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>弱引用</strong><br>将对象用WeakReference弱引用类型的对象包裹，弱引用跟没引用差不多，GC会直接回收掉，很少用。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> WeakReference&lt;User&gt; user = <span class="keyword">new</span> WeakReference&lt;User&gt;(<span class="keyword">new</span> User());</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>虚引用</strong><br>也成为幽灵引用或者幻影引用，它是最弱的一种引用关系，几乎不用。</p>
+</li>
+</ul>
+<h3 id="可达性分析算法"><a href="#可达性分析算法" class="headerlink" title="可达性分析算法"></a>可达性分析算法</h3><p>这个算法的基本思想是通过一系列被称为”GC Roots”的对象作为起始点，从这些节点向下搜索，找到的对象都标记为非垃圾对象，剩余的都为垃圾对象；</p>
+<p><strong>GC Roots:</strong> <font color="red">线程栈的本地变量、静态属性、常量、本地方法栈的变量等</font>；</p>
+<p><strong>finalize()方法最终判定对象是否存活</strong><br>即使在可达性分析算法中不可达的对象，也并非是 『<strong>非死不可</strong>』，标记完之后只是暂时处于 『<strong>缓刑</strong>』 阶段，要真正宣告一个对象死亡，至少要经历再次标记过程。</p>
+<p>标记的前提是：<strong>对象在进行可达性分析之后发现没有与任何GC Roots相连的引用链</strong>。</p>
+<ul>
+<li><p>第一次标记并进行一次筛选<br>对象如果没有覆盖<code>finalize()</code>方法，将会直接被回收；</p>
+</li>
+<li><p>第二次标记<br>如果这个对象覆盖了<code>finalize()</code>方法，只要在该方法中重新与引用链上的任何一个对象建立了关联，就可以拯救自己，不会被回收。</p>
+</li>
+</ul>
+<p><strong>如何判断一个类是无用类：</strong><br>类需要同时满足下面3个条件才能算是 <strong>无用类</strong>：</p>
+<ul>
+<li><p>该类所有的实例都已经被回收，也就是堆中不存在该类的任何实例；</p>
+</li>
+<li><p>加载该类的ClassLoader已经被回收；</p>
+</li>
+<li><p>该类对应的java.lang.Class对象没有在任何地方被引用，无法在任何地方通过反射访问该类的方法；</p>
+</li>
+</ul>
+<h2 id="垃圾收集算法"><a href="#垃圾收集算法" class="headerlink" title="垃圾收集算法"></a>垃圾收集算法</h2><p>常用的垃圾回收算法有：标记-清除算法、复制算法、标记-整理算法、分代收集算法。目前主流的JVM（HotSpot）采用的是分代收集算法。</p>
+<h3 id="标记-清除算法"><a href="#标记-清除算法" class="headerlink" title="标记-清除算法"></a>标记-清除算法</h3><p>标记-清除算法采用从根集合进行扫描，对存活的对象对象标记，标记完毕后，再扫描整个空间中未被标记的对象，进行回收。标记-清除算法不需要进行对象的移动，并且仅对不存活的对象进行处理，在<strong>存活对象比较多的情况下极为高效</strong>，但由于标记-清除算法直接回收不存活的对象，因此会<strong>造成内存碎片</strong>。<br><img src="/images/jvm_mark_swep.jpg" alt></p>
+<h3 id="复制算法"><a href="#复制算法" class="headerlink" title="复制算法"></a>复制算法</h3><p><img src="/images/jvm_copy.jpg" alt></p>
+<h3 id="标记-整理算法"><a href="#标记-整理算法" class="headerlink" title="标记-整理算法"></a>标记-整理算法</h3><p><img src="/images/jvm_mark_zhengli.jpg" alt></p>
+<h3 id="分代收集算法"><a href="#分代收集算法" class="headerlink" title="分代收集算法"></a>分代收集算法</h3><p><img src="/images/jvm_fendai_collection.jpg" alt></p>
+<h2 id="垃圾收集器"><a href="#垃圾收集器" class="headerlink" title="垃圾收集器"></a>垃圾收集器</h2><p><img src="/images/java_gc_collectors.png" alt></p>
+<h3 id="Serial收集器"><a href="#Serial收集器" class="headerlink" title="Serial收集器"></a>Serial收集器</h3><p><img src="/images/java_gc_serial.jpg" alt></p>
+<h3 id="ParNew收集器"><a href="#ParNew收集器" class="headerlink" title="ParNew收集器"></a>ParNew收集器</h3><p><img src="/images/java_gc_parnew.jpg" alt></p>
+<h3 id="Parallel-Scavenge收集器"><a href="#Parallel-Scavenge收集器" class="headerlink" title="Parallel Scavenge收集器"></a>Parallel Scavenge收集器</h3><p><img src="/images/java_gc_scavenge.jpg" alt></p>
+<h3 id="CMS收集器"><a href="#CMS收集器" class="headerlink" title="CMS收集器"></a>CMS收集器</h3><p><img src="/images/java_gc_cms-collec.jpg" alt></p>
+<p><img src="/images/java_cms_advantage.jpg" alt></p>
+<p><img src="/images/java_cms_parameter.jpg" alt></p>
+<h3 id="G1收集器"><a href="#G1收集器" class="headerlink" title="G1收集器"></a>G1收集器</h3><p><img src="/images/java_gc_g1.jpg" alt></p>
+<p><img src="/images/java_gc_g1_process.jpg" alt></p>
+<p><img src="/images/java_gc_g1_class.jpg" alt></p>
+<h1 id="JVM优化"><a href="#JVM优化" class="headerlink" title="JVM优化"></a>JVM优化</h1><h2 id="能否对JVM调优，让其几乎不发生Full-GC"><a href="#能否对JVM调优，让其几乎不发生Full-GC" class="headerlink" title="能否对JVM调优，让其几乎不发生Full GC?"></a>能否对JVM调优，让其几乎不发生Full GC?</h2><p>评估对象大小和生命周期，调整年轻代大小和Eden/Survivor区比例，保证minor gc就能够回收基本所有对象，避免对象因为过大或年龄太大进入老年代。<br><img src="/images/jvm_full_gc_optimize.jpg" alt></p>
+<p>需要放入survivor区的对象大于survivor区大小的50%时，会触发担保机制，直接放入老年代；</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"><i class="fa fa-tag"></i> Java</a>
+          
+            <a href="/tags/Jvm/" rel="tag"><i class="fa fa-tag"></i> Jvm</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/12/06/Redis数据结构及常见使用场景/" rel="next" title="Redis数据结构及常见使用场景">
+                <i class="fa fa-chevron-left"></i> Redis数据结构及常见使用场景
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        
+  <div class="bdsharebuttonbox">
+    <a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+    <a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网"></a>
+    <a href="#" class="bds_sqq" data-cmd="sqq" title="分享到QQ好友"></a>
+    <a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"></a>
+    <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"></a>
+    <a href="#" class="bds_tieba" data-cmd="tieba" title="分享到百度贴吧"></a>
+    <a href="#" class="bds_twi" data-cmd="twi" title="分享到Twitter"></a>
+    <a href="#" class="bds_fbook" data-cmd="fbook" title="分享到Facebook"></a>
+    <a href="#" class="bds_more" data-cmd="more"></a>
+    <a class="bds_count" data-cmd="count"></a>
+  </div>
+  <script>
+    window._bd_share_config = {
+      "common": {
+        "bdText": "",
+        "bdMini": "2",
+        "bdMiniList": false,
+        "bdPic": ""
+      },
+      "share": {
+        "bdSize": "16",
+        "bdStyle": "0"
+      },
+      "image": {
+        "viewList": ["tsina", "douban", "sqq", "qzone", "weixin", "twi", "fbook"],
+        "viewText": "分享到：",
+        "viewSize": "16"
+      }
+    }
+  </script>
+
+<script>
+  with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="Austin Brant">
+            
+              <p class="site-author-name" itemprop="name">Austin Brant</p>
+              <p class="site-description motion-element" itemprop="description">冰冻三尺,非一日之寒</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">30</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">25</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">33</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#JDK体系结构"><span class="nav-number">1.</span> <span class="nav-text">JDK体系结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#JVM内存模型"><span class="nav-number">2.</span> <span class="nav-text">JVM内存模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#两个子系统"><span class="nav-number">2.1.</span> <span class="nav-text">两个子系统</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#两个组件"><span class="nav-number">2.2.</span> <span class="nav-text">两个组件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#方法区"><span class="nav-number">2.2.1.</span> <span class="nav-text">方法区</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#虚拟机栈"><span class="nav-number">2.2.2.</span> <span class="nav-text">虚拟机栈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#本地方法栈"><span class="nav-number">2.2.3.</span> <span class="nav-text">本地方法栈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#堆（Heap）"><span class="nav-number">2.2.4.</span> <span class="nav-text">堆（Heap）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#程序计数器"><span class="nav-number">2.2.5.</span> <span class="nav-text">程序计数器</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#JVM内存快照示例"><span class="nav-number">3.</span> <span class="nav-text">JVM内存快照示例</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#垃圾回收"><span class="nav-number">4.</span> <span class="nav-text">垃圾回收</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#JVM内存分配与回收策略"><span class="nav-number">4.1.</span> <span class="nav-text">JVM内存分配与回收策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#对象优先在Eden区分配"><span class="nav-number">4.1.1.</span> <span class="nav-text">对象优先在Eden区分配</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#长期存活的对象将进入老年代"><span class="nav-number">4.1.2.</span> <span class="nav-text">长期存活的对象将进入老年代</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#大对象直接进入老年代"><span class="nav-number">4.1.3.</span> <span class="nav-text">大对象直接进入老年代</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#对象动态年龄判断"><span class="nav-number">4.1.4.</span> <span class="nav-text">对象动态年龄判断</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#老年代空间分配担保机制"><span class="nav-number">4.1.5.</span> <span class="nav-text">老年代空间分配担保机制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#垃圾对象判断"><span class="nav-number">4.2.</span> <span class="nav-text">垃圾对象判断</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#引用计数法"><span class="nav-number">4.2.1.</span> <span class="nav-text">引用计数法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可达性分析算法"><span class="nav-number">4.2.2.</span> <span class="nav-text">可达性分析算法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#垃圾收集算法"><span class="nav-number">4.3.</span> <span class="nav-text">垃圾收集算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#标记-清除算法"><span class="nav-number">4.3.1.</span> <span class="nav-text">标记-清除算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#复制算法"><span class="nav-number">4.3.2.</span> <span class="nav-text">复制算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#标记-整理算法"><span class="nav-number">4.3.3.</span> <span class="nav-text">标记-整理算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分代收集算法"><span class="nav-number">4.3.4.</span> <span class="nav-text">分代收集算法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#垃圾收集器"><span class="nav-number">4.4.</span> <span class="nav-text">垃圾收集器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Serial收集器"><span class="nav-number">4.4.1.</span> <span class="nav-text">Serial收集器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ParNew收集器"><span class="nav-number">4.4.2.</span> <span class="nav-text">ParNew收集器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Parallel-Scavenge收集器"><span class="nav-number">4.4.3.</span> <span class="nav-text">Parallel Scavenge收集器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CMS收集器"><span class="nav-number">4.4.4.</span> <span class="nav-text">CMS收集器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#G1收集器"><span class="nav-number">4.4.5.</span> <span class="nav-text">G1收集器</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#JVM优化"><span class="nav-number">5.</span> <span class="nav-text">JVM优化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#能否对JVM调优，让其几乎不发生Full-GC"><span class="nav-number">5.1.</span> <span class="nav-text">能否对JVM调优，让其几乎不发生Full GC?</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Austin Brant</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_sphere.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
