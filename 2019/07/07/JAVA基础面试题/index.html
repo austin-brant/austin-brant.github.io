@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Java,面试,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Austin Brant" type="application/atom+xml">
+
+
+
+
+
+
+<meta name="description" content="JAVA语言基础java垃圾回收？ 引用计数法 (Reference Counting)引用计数器有一个严重的问题，即无法处理循环引用的情况。因此，在 Java 的垃圾回收器中没有使用这种算法。    标记-清除算法 (Mark-Sweep)标记-清除算法将垃圾回收分为两个阶段：标记阶段和清除阶段。该算法最大的问题是存在大量的空间碎片，因为回收后的空间是不连续的。    复制算法 (Copying">
+<meta name="keywords" content="Java,面试">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JAVA基础面试题">
+<meta property="og:url" content="http://yoursite.com/2019/07/07/JAVA基础面试题/index.html">
+<meta property="og:site_name" content="Austin Brant">
+<meta property="og:description" content="JAVA语言基础java垃圾回收？ 引用计数法 (Reference Counting)引用计数器有一个严重的问题，即无法处理循环引用的情况。因此，在 Java 的垃圾回收器中没有使用这种算法。    标记-清除算法 (Mark-Sweep)标记-清除算法将垃圾回收分为两个阶段：标记阶段和清除阶段。该算法最大的问题是存在大量的空间碎片，因为回收后的空间是不连续的。    复制算法 (Copying">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/tcp_3_handshake.jpg">
+<meta property="og:image" content="http://yoursite.com/images/tcp_3_handshake2.jpg">
+<meta property="og:image" content="http://yoursite.com/images/access_web_process.jpg">
+<meta property="og:image" content="http://yoursite.com/images/ios_7_protocol.jpg">
+<meta property="og:image" content="http://yoursite.com/images/tcp_ip_4_layer.jpg">
+<meta property="og:updated_time" content="2019-12-20T13:19:07.220Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JAVA基础面试题">
+<meta name="twitter:description" content="JAVA语言基础java垃圾回收？ 引用计数法 (Reference Counting)引用计数器有一个严重的问题，即无法处理循环引用的情况。因此，在 Java 的垃圾回收器中没有使用这种算法。    标记-清除算法 (Mark-Sweep)标记-清除算法将垃圾回收分为两个阶段：标记阶段和清除阶段。该算法最大的问题是存在大量的空间碎片，因为回收后的空间是不连续的。    复制算法 (Copying">
+<meta name="twitter:image" content="http://yoursite.com/images/tcp_3_handshake.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/07/07/JAVA基础面试题/">
+
+
+
+
+
+  <title>JAVA基础面试题 | Austin Brant</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Austin Brant</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/07/JAVA基础面试题/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Austin Brant">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Austin Brant">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">JAVA基础面试题</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-07T20:49:12+08:00">
+                2019-07-07
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2019-12-20T21:19:07+08:00">
+                2019-12-20
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/基础/" itemprop="url" rel="index">
+                    <span itemprop="name">基础</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  10.4k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  36
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="JAVA语言基础"><a href="#JAVA语言基础" class="headerlink" title="JAVA语言基础"></a>JAVA语言基础</h2><h3 id="java垃圾回收？"><a href="#java垃圾回收？" class="headerlink" title="java垃圾回收？"></a>java垃圾回收？</h3><ul>
+<li><p>引用计数法 (Reference Counting)<br>引用计数器有一个严重的问题，即无法处理循环引用的情况。因此，在 Java 的垃圾回收器中没有使用这种算法。  </p>
+</li>
+<li><p>标记-清除算法 (Mark-Sweep)<br>标记-清除算法将垃圾回收分为两个阶段：标记阶段和清除阶段。该算法最大的问题是存在大量的空间碎片，因为回收后的空间是不连续的。  </p>
+</li>
+<li><p>复制算法 (Copying)<br>将现有的内存空间分为两快，每次只使用其中一块，在垃圾回收时将正在使用的内存中的存活对象复制到未被使用的内存块中，之后，清除正在使用的内存块中的所有对象，交换两个内存的角色，完成垃圾回收。  <strong>算法的缺点是将系统内存折半。</strong>  Java 的新生代串行垃圾回收器中使用了复制算法的思想。  </p>
+</li>
+<li><p>标记-压缩算法 (Mark-Compact)<br>标记-压缩算法是一种<strong>老年代</strong>的回收算法，它在标记-清除算法的基础上做了一些优化。也首先需要从根节点开始对所有可达对象做一次标记，但之后，它并不简单地清理未标记的对象，而是将所有的存活对象压缩到内存的一端。之后，清理边界外所有的空间。这种方法既避免了碎片的产生，又不需要两块相同的内存空间，因此，其性价比比较高。</p>
+</li>
+<li><p>增量算法 (Incremental Collecting)<br>增量算法的基本思想是，如果一次性将所有的垃圾进行处理，需要造成系统长时间的停顿，那么就可以让垃圾收集线程和应用程序线程交替执行。每次，垃圾收集线程只收集一小片区域的内存空间，接着切换到应用程序线程。依次反复，直到垃圾收集完成。</p>
+</li>
+</ul>
+<p><strong>能减少系统的停顿时间</strong>。但是，因为线程切换和上下文转换的消耗，会使得<strong>垃圾回收的总体成本上升，造成系统吞吐量的下降</strong>。</p>
+<ul>
+<li>分代 (Generational Collecting)<br>根据垃圾回收对象的特性，不同阶段最优的方式是使用合适的算法用于本阶段的垃圾回收，分代算法即是基于这种思想，它将内存区间根据对象的特点分成几块，根据每块内存区间的特点，使用不同的回收算法，以提高垃圾回收的效率。</li>
+</ul>
+<h3 id="HashMap的实现原理？"><a href="#HashMap的实现原理？" class="headerlink" title="HashMap的实现原理？"></a>HashMap的实现原理？</h3><blockquote>
+<p>数组 + 链表</p>
+</blockquote>
+<p>“模”运算的消耗还是比较大的，在 HashMap 中是这样做的：调用 indexFor(int h, int length) 方法来计算该对象应该保存在 table 数组的哪个索引处。indexFor(int h, int length) 方法的代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Returns index for hash code h.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">indexFor</span><span class="params">(<span class="keyword">int</span> h, <span class="keyword">int</span> length)</span> </span>&#123;  </span><br><span class="line">    <span class="keyword">return</span> h &amp; (length-<span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法非常巧妙，它通过 h &amp; (table.length -1) 来得到该对象的保存位，而 HashMap 底层数组的长度总是 2 的 n 次方，这是 HashMap 在速度上的优化。在 HashMap 构造器中有如下代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Find a power of 2 &gt;= initialCapacity</span></span><br><span class="line"><span class="keyword">int</span> capacity = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">while</span> (capacity &lt; initialCapacity)  </span><br><span class="line">        capacity &lt;&lt;= <span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这段代码保证初始化时 HashMap 的容量总是 2 的 n 次方，即底层数组的长度总是为 2 的 n 次方。<br>当 length 总是 2 的 n 次方时，h&amp; (length-1)运算等价于对 length 取模，也就是 h%length，但是 &amp; 比 % 具有更高的效率。这看上去很简单，其实比较有玄机的。</p>
+<p>我们也可以发现，当数组长度为 15 的时候，hash 值会与 15-1（1110）进行“与”，那么最后一位永远是 0，而 0001，0011，0101，1001，1011，0111，1101 这几个位置永远都不能存放元素了，空间浪费相当大，更糟的是这种情况中，数组可以使用的位置比数组长度小了很多，这意味着进一步增加了碰撞的几率，减慢了查询的效率！而当数组长度为16时，即为2的n次方时，2n-1 得到的二进制数的每个位上的值都为 1，这使得在低位上&amp;时，得到的和原 hash 的低位相同，加之 hash(int h)方法对 key 的 hashCode 的进一步优化，加入了高位计算，就使得只有相同的 hash 值的两个值才会被放到数组中的同一个位置上形成链表。<br>所以说，当数组长度为 2 的 n 次幂的时候，不同的 key 算得得 index 相同的几率较小，那么数据在数组上分布就比较均匀，也就是说碰撞的几率小，相对的，查询的时候就不用遍历某个位置上的链表，这样查询效率也就较高了。</p>
+<blockquote>
+<p>在 JDK1.8 中对 HashMap 进行了优化：<br>当hash碰撞之后写入链表的长度超过了阈值(默认为8)，链表将会转换为红黑树。<br>假设 hash 冲突非常严重，一个数组后面接了很长的链表，此时重新的时间复杂度就是 O(n) 。<br>如果是红黑树，时间复杂度就是 O(logn)，大大提高了查询效率。</p>
+</blockquote>
+<h3 id="什么是值传递和引用传递？java中是值传递还是引用传递，还是都有"><a href="#什么是值传递和引用传递？java中是值传递还是引用传递，还是都有" class="headerlink" title="什么是值传递和引用传递？java中是值传递还是引用传递，还是都有?"></a>什么是值传递和引用传递？java中是值传递还是引用传递，还是都有?</h3><ul>
+<li><p>值传递<br>就是在方法调用的时候，实参是将自己的一份拷贝赋给形参，在方法内，对该参数值的修改不影响原来实参，常见的例子就是刚开始学习c语言的时候那个交换方法的例子了。</p>
+</li>
+<li><p>引用传递<br>是在方法调用的时候，实参将自己的地址传递给形参，此时方法内对该参数值的改变，就是对该实参的实际操作。</p>
+</li>
+</ul>
+<blockquote>
+<p>在java中只有一种传递方式，那就是值传递.可能比较让人迷惑的就是java中的对象传递时，对形参的改变依然会影响到该对象的内容。</p>
+</blockquote>
+<p>下面这个例子来说明java中是值传递.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        StringBuffer sb = <span class="keyword">new</span> StringBuffer(<span class="string">"hello "</span>);</span><br><span class="line">        getString(sb);</span><br><span class="line">        System.out.println(sb);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">getString</span><span class="params">(StringBuffer s)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//s = new StringBuffer("ha");</span></span><br><span class="line">        s.append(<span class="string">"world"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>在上面这个例子中,当前输出结果为:hello world。这并没有什么问题，可能就是大家平常所理解的引用传递，那么当然会改变StringBuffer的内容。但是如果把上面的注释去掉，那么就会输出:hello.此时sb的值并没有变成ha hello. 假如说是引用传递的话，那么形参的s也就是sb的地址，此时在方法里new StringBuffer（），并将该对象赋给s，也就是说s现在指向了这个新创建的对象.按照引用传递的说法，此时对s的改变就是对sb的操作，也就是说sb应该也指向新创建的对象，那么输出的结果应该为ha world.但实际上输出的仅是hello.这说明sb指向的还是原来的对象，而形参s指向的才是创建的对象,这也就验证了java中的对象传递也是值传递。</p>
+</blockquote>
+<h3 id="接口和抽象类的差同是什么"><a href="#接口和抽象类的差同是什么" class="headerlink" title="接口和抽象类的差同是什么?"></a>接口和抽象类的差同是什么?</h3><p>差异：</p>
+<ul>
+<li><p>接口中所有的方法隐含的都是抽象的。而抽象类则可以同时包含抽象和非抽象的方法。</p>
+</li>
+<li><p>类可以实现很多个接口，但是只能继承一个抽象类</p>
+</li>
+<li><p>类如果要实现一个接口，它必须要实现接口声明的所有方法。但是，类可以不实现抽象类声明的所有方法，当然，在这种情况下，类也必须得声明成是抽象的。</p>
+</li>
+<li><p>抽象类可以在不提供接口方法实现的情况下实现接口。</p>
+</li>
+<li><p>Java 接口中声明的变量默认都是 final 的，即为常量。抽象类可以包含非final的变量，即成员变量。</p>
+</li>
+<li><p>Java 接口中的成员函数默认是 public 的。抽象类的成员函数可以是 private，protected 或者是 public 。</p>
+</li>
+<li><p>接口是绝对抽象的，不可以被实例化(java 8已支持在接口中实现默认的方法)。抽象类也不可以被实例化，但是，如果它包含 main 方法的话是可以被调用的。</p>
+</li>
+<li><p>接口比抽象类更加抽象，因为抽象类中可以定义构造器，可以有抽象方法和具体方法，而接口中不能定义构造器而且其中的方法全部都是抽象方法。</p>
+</li>
+<li><p>有抽象方法的类必须被声明为抽象类，而抽象类未必要有抽象方法。</p>
+</li>
+</ul>
+<p>相同：</p>
+<ul>
+<li><p>抽象类和接口都不能够实例化，但可以定义抽象类和接口类型的引用。  </p>
+</li>
+<li><p>一个类如果继承了某个抽象类或者实现了某个接口都需要对其中的抽象方法全部进行实现，否则该类仍然需要被声明为抽象类。</p>
+</li>
+</ul>
+<h3 id="接口与继承"><a href="#接口与继承" class="headerlink" title="接口与继承"></a>接口与继承</h3><p>接口是否可继承（extends）接口？抽象类是否可实现（implements）接口？抽象类是否可继承具体类（concrete class）？<br>答：接口可以继承接口，而且支持多重继承。抽象类可以实现(implements)接口，抽象类可继承具体类也可以继承抽象类。</p>
+<h3 id="为什么wait-notify-和-notifyAll这些方法不在thread类里面"><a href="#为什么wait-notify-和-notifyAll这些方法不在thread类里面" class="headerlink" title="为什么wait, notify 和 notifyAll这些方法不在thread类里面?"></a>为什么wait, notify 和 notifyAll这些方法不在thread类里面?</h3><p>这是个设计相关的问题，它考察的是面试者对现有系统和一些普遍存在但看起来不合理的事物的看法。回答这些问题的时候，你要说明为什么把这些方法放在Object类里是有意义的，还有不把它放在Thread类里的原因。一个很明显的原因是JAVA提供的锁是对象级的而不是线程级的，每个对象都有锁，通过线程获得。如果线程需要等待某些锁那么调用对象中的wait()方法就有意义了。如果wait()方法定义在Thread类中，线程正在等待的是哪个锁就不明显了。简单的说，由于wait，notify和notifyAll都是锁级别的操作，所以把他们定义在Object类中因为锁属于对象。</p>
+<h3 id="String、StringBuffer与StringBuilder的区别"><a href="#String、StringBuffer与StringBuilder的区别" class="headerlink" title="String、StringBuffer与StringBuilder的区别"></a>String、StringBuffer与StringBuilder的区别</h3><blockquote>
+<p>String：适用于少量的字符串操作的情况。<br>StringBuilder：适用于单线程下在字符缓冲区进行大量操作的情况。 StringBuffer：适用多线程下在字符缓冲区进行大量操作的情况。<br>StringBuilder：是线程不安全的，而StringBuffer是线程安全的。</p>
+</blockquote>
+<p>这三个类之间的区别主要是在两个方面，即运行速度和线程安全这两方面。 首先说运行速度，或者说是执行速度，在这方面运行速度快慢为：</p>
+<blockquote>
+<p>StringBuilder &gt; StringBuffer &gt; String。</p>
+</blockquote>
+<p>String最慢的原因<br>String为字符串常量，而StringBuilder和StringBuffer均为字符串变量，即String对象一旦创建之后该对象是不可更改的，但后两者的对象是变量，是可以更改的。</p>
+<p>再来说线程安全<br>在线程安全上，StringBuilder是线程不安全的，而StringBuffer是线程安全的。<br>如果一个StringBuffer对象在字符串缓冲区被多个线程使用时，StringBuffer中很多方法可以带有synchronized关键字，所以可以保证线程是安全的，但StringBuilder的方法则没有该关键字，所以不能保证线程安全，有可能会出现一些错误的操作。所以如果要进行的操作是多线程的，那么就要使用StringBuffer，但是在单线程的情况下，还是建议使用速度比较快的StringBuilder。</p>
+<h3 id="Thread类的sleep-方法和对象的wait-方法都可以让线程暂停执行，它们有什么区别"><a href="#Thread类的sleep-方法和对象的wait-方法都可以让线程暂停执行，它们有什么区别" class="headerlink" title="Thread类的sleep()方法和对象的wait()方法都可以让线程暂停执行，它们有什么区别?"></a>Thread类的sleep()方法和对象的wait()方法都可以让线程暂停执行，它们有什么区别?</h3><p>答：<br>    - [ ] sleep()方法（休眠）是线程类（Thread）的静态方法，调用此方法会让当前线程暂停执行指定的时间，将执行机会（CPU）让给其他线程，但是对象的锁依然保持，因此休眠时间结束后会自动恢复（线程回到就绪状态，请参考第66题中的线程状态转换图）。<br>    - [ ] wait()是Object类的方法，调用对象的wait()方法导致当前线程放弃对象的锁（线程暂停执行），进入对象的等待池（wait pool），只有调用对象的notify()方法（或notifyAll()方法）时才能唤醒等待池中的线程进入等锁池（lock pool），如果线程重新获得对象的锁就可以进入就绪状态。</p>
+<p>补充：可能不少人对什么是进程，什么是线程还比较模糊，对于为什么需要多线程编程也不是特别理解。简单的说：进程是具有一定独立功能的程序关于某个数据集合上的一次运行活动，是操作系统进行资源分配和调度的一个独立单位；线程是进程的一个实体，是CPU调度和分派的基本单位，是比进程更小的能独立运行的基本单位。线程的划分尺度小于进程，这使得多线程程序的并发性高；进程在执行时通常拥有独立的内存单元，而线程之间可以共享内存。使用多线程的编程通常能够带来更好的性能和用户体验，但是多线程的程序对于其他程序是不友好的，因为它可能占用了更多的CPU资源。当然，也不是线程越多，程序的性能就越好，因为线程之间的调度和切换也会浪费CPU时间。时下很时髦的Node.js就采用了单线程异步I/O的工作模式。</p>
+<h3 id="重载（Overload）和重写（Override）的区别。重载的方法能否根据返回类型进行区分？"><a href="#重载（Overload）和重写（Override）的区别。重载的方法能否根据返回类型进行区分？" class="headerlink" title="重载（Overload）和重写（Override）的区别。重载的方法能否根据返回类型进行区分？"></a>重载（Overload）和重写（Override）的区别。重载的方法能否根据返回类型进行区分？</h3><p>答：方法的重载和重写都是实现多态的方式，区别在于前者实现的是编译时的多态性，而后者实现的是运行时的多态性。<br><strong>重载发生在一个类中</strong>，同名的方法如果有不同的参数列表（参数类型不同、参数个数不同或者二者都不同）则视为重载；<br><strong>重写发生在子类与父类之间</strong>，重写要求子类被重写方法与父类被重写方法有相同的返回类型，比父类被重写方法更好访问，不能比父类被重写方法声明更多的异常（里氏代换原则）。重载对返回类型没有特殊的要求。</p>
+<p>因为调用时不能指定类型信息，编译器不知道你要调用哪个函数。因为jvm无法根据返回值类型来判断应该调用哪个方法。<br>例如</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">float max(int a, int b);</span><br><span class="line">int max(int a, int b);</span><br></pre></td></tr></table></figure>
+
+<p>当调用max(1, 2);时无法确定调用的是哪个，单从这一点上来说，仅返回值类型不同的重载是不应该允许的。<br>函数的返回值只是作为函数运行之后的一个“状态”<br>他是保持方法的调用者与被调用者进行通信的关键<br>并不能作为某个方法的“标识”</p>
+<h3 id="阐述静态变量和实例变量的区别。"><a href="#阐述静态变量和实例变量的区别。" class="headerlink" title="阐述静态变量和实例变量的区别。"></a>阐述静态变量和实例变量的区别。</h3><p>答：<br>静态变量是被static修饰符修饰的变量，也称为类变量，它属于类，不属于类的任何一个对象，一个类不管创建多少个对象，静态变量在内存中有且仅有一个拷贝；<br>实例变量必须依存于某一实例，需要先创建对象然后通过对象才能访问到它。静态变量可以实现让多个对象共享内存。</p>
+<p>静态变量：线程非安全<br>静态变量即类变量，位于方法区，为所有对象共享，共享一份内存，一旦静态变量被修改，其他对象均对修改可见，故线程非安全。</p>
+<p><strong>实例变量</strong>：单例模式（只有一个对象实例存在）线程非安全，非单例线程安全。<br>实例变量为对象实例私有，在虚拟机的堆中分配，若在系统中只存在一个此对象的实例，在多线程环境下，“犹如”静态变量那样，被某个线程修改后，其他线程对修改均可见，故线程非安全；如果每个线程执行都是在不同的对象中，那对象与对象之间的实例变量的修改将互不影响，故线程安全。<br><strong>局部变量</strong>：线程安全。<br>每个线程执行时将会把局部变量放在各自栈帧的工作内存中，线程间不共享，故不存在线程安全问题</p>
+<h2 id="JVM"><a href="#JVM" class="headerlink" title="JVM"></a>JVM</h2><h3 id="JVM内存分哪几个区，每个区的作用是什么"><a href="#JVM内存分哪几个区，每个区的作用是什么" class="headerlink" title="JVM内存分哪几个区，每个区的作用是什么?"></a>JVM内存分哪几个区，每个区的作用是什么?</h3><p>java虚拟机主要分为以下几个区:</p>
+<ul>
+<li><p>方法区<br>有时候也成为永久代，在该区内很少发生垃圾回收，但是并不代表不发生GC，在这里进行的GC主要是对方法区里的常量池和对类型的卸载<br>方法区主要用来存储已被虚拟机加载的类的信息、常量、静态变量和即时编译器编译后的代码等数据。<br>该区域是被线程共享的。<br>方法区里有一个<code>运行时常量池</code>，用于存放静态编译产生的<code>字面量</code>和<code>符号引用</code>。该常量池具有动态性，也就是说常量并不一定是编译时确定，运行时生成的常量也会存在这个常量池中。</p>
+</li>
+<li><p>虚拟机栈<br>  （1）虚拟机栈也就是我们平常所称的<code>栈内存</code>,它为java<code>方法</code>服务，每个方法在执行的时候都会创建一个栈帧，用于存储<code>局部变量表</code>、<code>操作数栈</code>、<code>动态链接</code>和<code>方法出口</code>等信息。</p>
+<p>  （2）虚拟机栈是线程私有的，它的生命周期与线程相同。<br>  （3）局部变量表里存储的是<code>基本数据类型</code>、<code>returnAddress类型</code>（指向一条字节码指令的地址）和<code>对象引用</code>，这个对象引用有可能是指向对象起始地址的一个指针，也有可能是代表对象的句柄或者与对象相关联的位置。局部变量所需的内存空间在<code>编译期间</code>确定<br>  （4）操作数栈的作用主要用来存储运算结果以及运算的操作数，它不同于局部变量表通过索引来访问，而是压栈和出栈的方式<br>  （5）每个栈帧都包含一个指向运行时常量池中该栈帧所属方法的引用，持有这个引用是为了支持方法调用过程中的动态连接.动态链接就是将常量池中的符号引用在运行期转化为直接引用。</p>
+</li>
+<li><p>本地方法栈<br>本地方法栈和虚拟机栈类似，只不过本地方法栈为Native方法服务。</p>
+</li>
+<li><p>堆<br>java堆是所有线程所共享的一块内存，在虚拟机启动时创建，几乎所有的对象实例都在这里创建，因此该区域经常发生垃圾回收操作。</p>
+</li>
+<li><p>程序计数器<br>内存空间小，字节码解释器工作时通过改变这个计数值可以选取下一条需要执行的字节码指令，分支、循环、跳转、异常处理和线程恢复等功能都需要依赖这个计数器完成。该内存区域是唯一一个java虚拟机规范没有规定任何OOM情况的区域。</p>
+</li>
+</ul>
+<h3 id="java类加载过程"><a href="#java类加载过程" class="headerlink" title="java类加载过程?"></a>java类加载过程?</h3><p>java类加载需要经历一下7个过程：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">加载</span><br><span class="line"></span><br><span class="line">加载时类加载的第一个过程，在这个阶段，将完成一下三件事情：</span><br><span class="line"></span><br><span class="line">通过一个类的全限定名获取该类的二进制流。</span><br><span class="line">将该二进制流中的静态存储结构转化为方法去运行时数据结构。</span><br><span class="line">在内存中生成该类的Class对象，作为该类的数据访问入口。</span><br><span class="line">验证</span><br><span class="line"></span><br><span class="line">验证的目的是为了确保Class文件的字节流中的信息不回危害到虚拟机.在该阶段主要完成以下四钟验证:</span><br><span class="line"></span><br><span class="line">文件格式验证：验证字节流是否符合Class文件的规范，如主次版本号是否在当前虚拟机范围内，常量池中的常量是否有不被支持的类型.</span><br><span class="line">元数据验证:对字节码描述的信息进行语义分析，如这个类是否有父类，是否集成了不被继承的类等。</span><br><span class="line">字节码验证：是整个验证过程中最复杂的一个阶段，通过验证数据流和控制流的分析，确定程序语义是否正确，主要针对方法体的验证。如：方法中的类型转换是否正确，跳转指令是否正确等。</span><br><span class="line">符号引用验证：这个动作在后面的解析过程中发生，主要是为了确保解析动作能正确执行。</span><br><span class="line">准备</span><br><span class="line"></span><br><span class="line">准备阶段是为类的静态变量分配内存并将其初始化为默认值，这些内存都将在方法区中进行分配。准备阶段不分配类中的实例变量的内存，实例变量将会在对象实例化时随着对象一起分配在Java堆中。</span><br><span class="line"></span><br><span class="line">    public static int value=123;//在准备阶段value初始值为0 。在初始化阶段才会变为123 。</span><br><span class="line">解析</span><br><span class="line"></span><br><span class="line">该阶段主要完成符号引用到直接引用的转换动作。解析动作并不一定在初始化动作完成之前，也有可能在初始化之后。</span><br><span class="line"></span><br><span class="line">初始化</span><br><span class="line"></span><br><span class="line">初始化时类加载的最后一步，前面的类加载过程，除了在加载阶段用户应用程序可以通过自定义类加载器参与之外，其余动作完全由虚拟机主导和控制。到了初始化阶段，才真正开始执行类中定义的Java程序代码。</span><br></pre></td></tr></table></figure>
+
+<h3 id="解释内存中的栈-stack-、堆-heap-和方法区-method-area-的用法"><a href="#解释内存中的栈-stack-、堆-heap-和方法区-method-area-的用法" class="headerlink" title="解释内存中的栈(stack)、堆(heap)和方法区(method area)的用法"></a>解释内存中的栈(stack)、堆(heap)和方法区(method area)的用法</h3><p>答：</p>
+<ul>
+<li><input disabled type="checkbox"> <p>通常我们定义一个基本数据类型的变量，一个对象的引用，还有就是函数调用的现场保存都使用JVM中的栈空间；</p>
+</li>
+<li><input disabled type="checkbox"> <p>而通过new关键字和构造器创建的对象则放在堆空间，堆是垃圾收集器管理的主要区域，由于现在的垃圾收集器都采用分代收集算法，所以堆空间还可以细分为新生代和老生代，再具体一点可以分为Eden、Survivor（又可分为From Survivor和To Survivor）、Tenured；</p>
+</li>
+<li><input disabled type="checkbox"> <p>方法区和堆都是各个线程共享的内存区域，用于存储已经被JVM加载的类信息、常量、静态变量、JIT编译器编译后的代码等数据；程序中的字面量（literal）如直接书写的100、”hello”和常量都是放在常量池中，常量池是方法区的一部分。</p>
+</li>
+<li><input disabled type="checkbox"> <p>栈空间操作起来最快但是栈很小，通常大量的对象都是放在堆空间，栈和堆的大小都可以通过JVM的启动参数来进行调整，栈空间用光了会引发StackOverflowError，而堆和常量池空间不足则会引发OutOfMemoryError。</p>
+<p>  String str = new String(“hello”);</p>
+</li>
+</ul>
+<h3 id="描述一下JVM加载class文件的原理机制？"><a href="#描述一下JVM加载class文件的原理机制？" class="headerlink" title="描述一下JVM加载class文件的原理机制？"></a>描述一下JVM加载class文件的原理机制？</h3><p>答：JVM中类的装载是由类加载器（ClassLoader）和它的子类来实现的，Java中的类加载器是一个重要的Java运行时系统组件，它负责在运行时查找和装入类文件中的类。<br>由于Java的跨平台性，经过编译的Java源程序并不是一个可执行程序，而是一个或多个类文件。当Java程序需要使用某个类时，JVM会确保这个类已经被加载、连接（验证、准备和解析）和初始化。类的加载是指把类的.class文件中的数据读入到内存中，通常是创建一个字节数组读入.class文件，然后产生与所加载类对应的Class对象。加载完成后，Class对象还不完整，所以此时的类还不可用。当类被加载后就进入连接阶段，这一阶段包括验证、准备（为静态变量分配内存并设置默认的初始值）和解析（将符号引用替换为直接引用）三个步骤。最后JVM对类进行初始化，包括：1)如果类存在直接的父类并且这个类还没有被初始化，那么就先初始化父类；2)如果类中存在初始化语句，就依次执行这些初始化语句。<br>类的加载是由类加载器完成的，类加载器包括：根加载器（BootStrap）、扩展加载器（Extension）、系统加载器（System）和用户自定义类加载器（java.lang.ClassLoader的子类）。从Java 2（JDK 1.2）开始，类加载过程采取了父亲委托机制（PDM）。PDM更好的保证了Java平台的安全性，在该机制中，JVM自带的Bootstrap是根加载器，其他的加载器都有且仅有一个父类加载器。类的加载首先请求父类加载器加载，父类加载器无能为力时才由其子类加载器自行加载。JVM不会向Java程序提供对Bootstrap的引用。下面是关于几个类加载器的说明：</p>
+<ul>
+<li>Bootstrap：一般用本地代码实现，负责加载JVM基础核心类库（rt.jar）；</li>
+<li>Extension：从java.ext.dirs系统属性所指定的目录中加载类库，它的父加载器是Bootstrap；</li>
+<li>System：又叫应用类加载器，其父类是Extension。它是应用最广泛的类加载器。它从环境变量classpath或者系统属性java.class.path所指定的目录中记载类，是用户自定义加载器的默认父加载器。</li>
+</ul>
+<h2 id="Spring-Boot"><a href="#Spring-Boot" class="headerlink" title="Spring Boot"></a>Spring Boot</h2><h3 id="ioc与aop"><a href="#ioc与aop" class="headerlink" title="ioc与aop?"></a>ioc与aop?</h3><h4 id="IOC"><a href="#IOC" class="headerlink" title="IOC"></a>IOC</h4><p>所谓IoC，对于spring框架来说，就是由spring来负责控制对象的生命周期和对象间的关系。IoC的一个重点是在系统运行中，动态的向某个对象提供它所需要的其他对象。这一点是通过DI（Dependency Injection，依赖注入）来实现的。</p>
+<p>IoC是一个很大的概念，可以用不同的方式来实现。主要的实现形式有两种:  </p>
+<ul>
+<li><p>依赖查找：容器提供回调接口和上下文环境给组件。EJB和Apache Avalon都是使用这种方式。  </p>
+</li>
+<li><p>依赖注入：组件不做定位查询，只是提供普通的Java方法让容器去决定依赖关系。容器全权负责组件的装配，它会把符合依赖关系的对象通过JavaBean属性或者构造子传递给需要的对象。通过JavaBean属性注射依赖关系的做法称为设值方法注入（SetterInjection）；将依赖关系作为构造子参数传入的做法称为构造子注入（ConstructorInjection）。</p>
+</li>
+</ul>
+<h4 id="AOP"><a href="#AOP" class="headerlink" title="AOP"></a>AOP</h4><p>AOP用途十分广泛，其中Spring内部的声明式事务和拦截器都是利用了AOP的强大威力，才得以优雅的实现。<br>AOP是什么呢，简单来说，它可以让编程人员在不修改对象代码的情况下，为这个对象添加额外的功能或者限制。</p>
+<p><a href="https://www.jianshu.com/p/c403609185a5" target="_blank" rel="noopener">Spring原理初探—-IOC、AOP</a></p>
+<h3 id="线程池几种实现？使用场景？"><a href="#线程池几种实现？使用场景？" class="headerlink" title="线程池几种实现？使用场景？"></a>线程池几种实现？使用场景？</h3><p>Java通过Executors提供四种线程池，分别为：</p>
+<ul>
+<li><p>newCachedThreadPool<br>创建一个可缓存线程池，如果线程池长度超过处理需要，可灵活回收空闲线程，若无可回收，则新建线程</p>
+</li>
+<li><p>newFixedThreadPool<br>创建一个定长线程池，可控制线程最大并发数，超出的线程会在队列中等待</p>
+</li>
+<li><p>newScheduledThreadPool<br>创建一个定长线程池，支持定时及周期性任务执行。</p>
+</li>
+<li><p>newSingleThreadExecutor<br>创建一个单线程化的线程池，它只会用唯一的工作线程来执行任务，保证所有任务按照指定顺序(FIFO, LIFO, 优先级)执行。</p>
+</li>
+</ul>
+<h3 id="Schedule执行原理？"><a href="#Schedule执行原理？" class="headerlink" title="@Schedule执行原理？"></a>@Schedule执行原理？</h3><blockquote>
+<p>默认同步执行，一个任务执行超时会阻塞其他任务；<br>可配置线程池方式异步执行；</p>
+</blockquote>
+<h3 id="统一异常处理？"><a href="#统一异常处理？" class="headerlink" title="统一异常处理？"></a>统一异常处理？</h3><blockquote>
+<p>@ControllerAdvice 类注解：   整个spring工程全局统一异常处理<br>@ExceptionHandler 方法注解： 作用于 Controller 级别</p>
+</blockquote>
+<h2 id="MYSQL"><a href="#MYSQL" class="headerlink" title="MYSQL"></a>MYSQL</h2><h3 id="ACID-什么情况下会触发rollback"><a href="#ACID-什么情况下会触发rollback" class="headerlink" title="ACID? 什么情况下会触发rollback?"></a>ACID? 什么情况下会触发rollback?</h3><p>原子性、一致性、隔离型、持久性</p>
+<h3 id="索引是什么？有什么作用以及优缺点？"><a href="#索引是什么？有什么作用以及优缺点？" class="headerlink" title="索引是什么？有什么作用以及优缺点？"></a>索引是什么？有什么作用以及优缺点？</h3><p>索引是对数据库表中一或多个列的值进行排序的结构，是帮助MySQL高效获取数据的数据结构</p>
+<p>你也可以这样理解：索引就是加快检索表中数据的方法。数据库的索引类似于书籍的索引。在书籍中，索引允许用户不必翻阅完整个书就能迅速地找到所需要的信息。在数据库中，索引也允许数据库程序迅速地找到表中的数据，而不必扫描整个数据库。 </p>
+<p>MySQL数据库几个基本的索引类型：<code>普通索引</code>、<code>唯一索引</code>、<code>主键索引</code>、<code>全文索引</code></p>
+<ul>
+<li>索引加快数据库的检索速度</li>
+<li>索引降低了插入、删除、修改等维护任务的速度</li>
+<li>唯一索引可以确保每一行数据的唯一性</li>
+<li>通过使用索引，可以在查询的过程中使用优化隐藏器，提高系统的性能</li>
+<li>索引需要占物理和数据空间<br>如果你对索引还不太熟悉，建议阅读：<a href="http://link.zhihu.com/?target=http%3A//kb.cnblogs.com/page/45712/" target="_blank" rel="noopener">漫谈数据库索引</a></li>
+</ul>
+<h3 id="什么是事务？"><a href="#什么是事务？" class="headerlink" title="什么是事务？"></a>什么是事务？</h3><p>事务（Transaction）是并发控制的基本单位。所谓的事务，它是一个操作序列，这些操作要么都执行，要么都不执行，它是一个不可分割的工作单位。事务是数据库维护数据一致性的单位，在每个事务结束时，都能保持数据一致性。<br>如果你对索引还不太熟悉，建议阅读：<a href="http://link.zhihu.com/?target=http%3A//blog.csdn.net/zdwzzu2006/article/details/5947062" target="_blank" rel="noopener">数据库事务 -  Mr. David 专栏</a></p>
+<h3 id="Having与Where的区别"><a href="#Having与Where的区别" class="headerlink" title="Having与Where的区别"></a>Having与Where的区别</h3><ul>
+<li><p>where 子句的作用是在对查询结果进行分组前，将不符合where条件的行去掉，即在分组之前过滤数据，where条件中不能包含聚组函数，使用where条件过滤出特定的行。</p>
+</li>
+<li><p>having 子句的作用是筛选满足条件的组，即在分组之后过滤数据，条件中经常包含聚组函数，使用having 条件过滤出特定的组，也可以使用多个分组标准进行分组</p>
+</li>
+</ul>
+<h3 id="聚集索引和非聚集索引"><a href="#聚集索引和非聚集索引" class="headerlink" title="聚集索引和非聚集索引"></a>聚集索引和非聚集索引</h3><ul>
+<li><p>1)、聚集索引<br>聚集索引决定数据在物理磁盘上的物理排序，一个表只能有一个聚集索引，如果定义了主键，那么InnoDB会通过主键来聚集数据，如果没有定义主键，InnoDB会选择一个唯一的非空索引代替，如果没有唯一的非空索引，InnoDB会隐式定义一个主键来作为聚集索引。<br>聚集索引可以很大程度的提高访问速度，因为聚集索引将索引和行数据保存在了同一个B-Tree中，所以找到了索引也就相应的找到了对应的行数据，但在使用聚集索引的时候需注意避免随机的聚集索引(一般指主键值不连续，且分布范围不均匀)，如使用UUID来作为聚集索引性能会很差，因为UUID值的不连续会导致增加很多的索引碎片和随机I/O，最终导致查询的性能急剧下降。</p>
+</li>
+<li><p>2)、非聚集索引<br>与聚集索引不同的是非聚集索引并不决定数据在磁盘上的物理排序，且在B-Tree中包含索引但不包含行数据，行数据只是通过保存在B-Tree中的索引对应的指针来指向行数据，如：上面在(user_name，city, age)上建立的索引就是非聚集索引。</p>
+</li>
+</ul>
+<h3 id="MYSQL索引？如何创建？怎么命中索引？"><a href="#MYSQL索引？如何创建？怎么命中索引？" class="headerlink" title="MYSQL索引？如何创建？怎么命中索引？"></a>MYSQL索引？如何创建？怎么命中索引？</h3><ul>
+<li><p>最左前缀<br>where查询条件中不包含索引列中的最左索引列，则无法使用到索引查询；</p>
+</li>
+<li><p>顺序无关行<br>在命中索引的情况下，字段顺序不需要严格按照索引建立的顺序</p>
+</li>
+<li><p>前缀索引<br>选择字符列的前n个字符作为索引，这样可以大大节约索引空间，从而提高索引效率，MySql无法使用前缀索引做ORDER BY 和 GROUP BY以及使用前缀索引做覆盖扫描</p>
+</li>
+<li><p>索引列不能是表达式的一部分，也不能作为函数的参数，否则无法使用索引查询</p>
+</li>
+</ul>
+<h3 id="避免重复插入？"><a href="#避免重复插入？" class="headerlink" title="避免重复插入？"></a>避免重复插入？</h3><blockquote>
+<p>INSERT IGNORE INTO <code>table_name</code> (<code>email</code>) VALUES (‘test9@163.com’);<br>REPLACE INTO <code>table_name</code>(<code>col_name</code>, …) VALUES (…);<br>INSERT … ON DUPLICATE KEY UPDATE </p>
+</blockquote>
+<p><a href="http://blog.csdn.net/jbboy/article/details/46828917" target="_blank" rel="noopener">MySql避免重复插入记录方法</a></p>
+<p>REPLACE的运行与INSERT很相像,但是如果旧记录与新记录有相同的值，则在新记录被插入之前，旧记录被删除 </p>
+<h2 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h2><h3 id="统计apache的access-log中访问量最多的5个IP"><a href="#统计apache的access-log中访问量最多的5个IP" class="headerlink" title="统计apache的access.log中访问量最多的5个IP"></a>统计apache的access.log中访问量最多的5个IP</h3><p><code>cat access.log | awk &#39;{print $1}&#39; | sort | uniq -c | sort -n -r | head -5</code></p>
+<h3 id="杀死全部python进程"><a href="#杀死全部python进程" class="headerlink" title="杀死全部python进程"></a>杀死全部python进程</h3><p><code>ps -ef | grep mysqld | awk &#39;{ print $2 }&#39; | xargs kill -9</code></p>
+<h3 id="符号链接与硬链接的区别"><a href="#符号链接与硬链接的区别" class="headerlink" title="符号链接与硬链接的区别"></a>符号链接与硬链接的区别</h3><p>可以把符号链接，也就是软连接 当做是 windows系统里的 快捷方式。<br>硬链接 就好像是 又复制了一份.<br>ln 3.txt 4.txt   这是硬链接，相当于复制，不可以跨分区，但修改3,4会跟着变，若删除3,4不受任何影响。</p>
+<p>ln -s 3.txt 4.txt  这是软连接，相当于快捷方式。修改4,3也会跟着变，若删除3,4就坏掉了。不可以用了</p>
+<h2 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h2><h3 id="请简述TCP-UDP的区别"><a href="#请简述TCP-UDP的区别" class="headerlink" title="请简述TCP\UDP的区别"></a>请简述TCP\UDP的区别</h3><p>TCP和UDP是OSI模型中的运输层中的协议。TCP提供可靠的通信传输，而UDP则常被用于让广播和细节控制交给应用的通信传输。<br>两者的区别大致如下：</p>
+<ul>
+<li>TCP面向连接，UDP面向非连接即发送数据前不需要建立链接</li>
+<li>TCP提供可靠的服务（数据传输），UDP无法保证</li>
+<li>TCP面向字节流，UDP面向报文</li>
+<li>TCP数据传输慢，UDP数据传输快<br>如果还不是太了解这两者的区别，点击阅读：<a href="https://link.zhihu.com/?target=http%3A//blog.csdn.net/yipiankongbai/article/details/24435977" target="_blank" rel="noopener">TCP与UDP的区别 - yipiankongbai的专栏</a></li>
+</ul>
+<h3 id="get请求和post请求区别？"><a href="#get请求和post请求区别？" class="headerlink" title="get请求和post请求区别？"></a>get请求和post请求区别？</h3><p>从原理性看：</p>
+<ul>
+<li>根据HTTP规范，GET用于信息获取，而且应该是安全和幂等的 </li>
+</ul>
+<ul>
+<li>根据HTTP规范，POST请求表示可能修改服务器上资源的请求</li>
+</ul>
+<p>从表面上看：</p>
+<ul>
+<li>GET请求的数据会附在URL后面，POST的数据放在HTTP包体</li>
+<li>POST安全性比GET安全性高</li>
+</ul>
+<h3 id="四层协议？TCP三次握手？"><a href="#四层协议？TCP三次握手？" class="headerlink" title="四层协议？TCP三次握手？"></a>四层协议？TCP三次握手？</h3><p>在TCP/IP协议中，TCP协议提供可靠的连接服务，连接是通过三次握手进行初始化的。三次握手的目的是同步连接双方的序列号和确认号并交换 TCP窗口大小信息。<br>下面详细说一下三次握手（来自<a href="https://link.zhihu.com/?target=http%3A//www.jellythink.com/archives/705" target="_blank" rel="noopener">简析TCP的三次握手与四次分手</a>）<br><img src="/images/tcp_3_handshake.jpg" alt></p>
+<p><img src="/images/tcp_3_handshake2.jpg" alt></p>
+<p>更加深入的了解TCP的三次握手与四次分手：<a href="https://link.zhihu.com/?target=http%3A//www.jellythink.com/archives/705" target="_blank" rel="noopener">简析TCP的三次握手与四次分手</a></p>
+<h3 id="在浏览器中输入网址之后执行会发生什么？"><a href="#在浏览器中输入网址之后执行会发生什么？" class="headerlink" title="在浏览器中输入网址之后执行会发生什么？"></a>在浏览器中输入网址之后执行会发生什么？</h3><ul>
+<li>查找域名对应的IP地址。这一步会依次查找浏览器缓存，系统缓存，路由器缓存，ISPNDS缓存，根域名服务器</li>
+<li>浏览器向IP对应的web服务器发送一个HTTP请求</li>
+<li>服务器响应请求，发回网页内容</li>
+<li>浏览器解析网页内容<br>更加详细的一种说法（以百度为例）（来自<a href="https://link.zhihu.com/?target=https%3A//www.nowcoder.com/discuss/1937" target="_blank" rel="noopener">计算机网络之面试常考 - 牛客网</a>）<br><img src="/images/access_web_process.jpg" alt></li>
+</ul>
+<p>如果你想要更加深入的了解这个过程，点击阅读：<a href="https://link.zhihu.com/?target=http%3A//www.itmian4.com/forum.php%3Fmod%3Dviewthread%26tid%3D1655%26fromuid%3D1931" target="_blank" rel="noopener">从输入网址到显示网页的全过程分析</a></p>
+<h3 id="HTTP-协议包括哪些请求？"><a href="#HTTP-协议包括哪些请求？" class="headerlink" title="HTTP 协议包括哪些请求？"></a>HTTP 协议包括哪些请求？</h3><ul>
+<li>GET：对服务器资源的简单请求</li>
+<li>POST：用于发送包含用户提交数据的请求</li>
+</ul>
+<p>————以及————</p>
+<ul>
+<li>HEAD：类似于GET请求，不过返回的响应中没有具体内容，用于获取报头</li>
+<li>PUT：传说中请求文档的一个版本</li>
+<li>DELETE：发出一个删除指定文档的请求</li>
+<li>TRACE：发送一个请求副本，以跟踪其处理进程</li>
+<li>OPTIONS：返回所有可用的方法，检查服务器支持哪些方法</li>
+<li>CONNECT：用于ssl隧道的基于代理的请求<h3 id="怎么解决跨域问题？"><a href="#怎么解决跨域问题？" class="headerlink" title="怎么解决跨域问题？"></a>怎么解决跨域问题？</h3></li>
+</ul>
+<h3 id="说一说OSI七层模型？"><a href="#说一说OSI七层模型？" class="headerlink" title="说一说OSI七层模型？"></a>说一说OSI七层模型？</h3><p>了解OSI七层模型，请点击阅读：<a href="https://link.zhihu.com/?target=http%3A//blog.csdn.net/yaopeng_2005/article/details/7064869" target="_blank" rel="noopener">OSI七层模型详解</a> （下面的图片来自啊该网址）<br><img src="/images/ios_7_protocol.jpg" alt></p>
+<h3 id="说一说TCP-IP四层模型"><a href="#说一说TCP-IP四层模型" class="headerlink" title="说一说TCP/IP四层模型"></a>说一说TCP/IP四层模型</h3><p>如果你不了解，请直接点击阅读：<a href="http://www.cnblogs.com/BlueTzar/articles/811160.html" target="_blank" rel="noopener">TCP/IP四层模型</a></p>
+<p>　ISO制定的OSI参考模型的过于庞大、复杂招致了许多批评。与此对照，由技术人员自己开发的TCP/IP协议栈获得了更为广泛的应用。如图所示，是TCP/IP参考模型和OSI参考模型的对比示意图。<br>　<img src="/images/tcp_ip_4_layer.jpg" alt></p>
+<p>下面，分别介绍各层的主要功能。</p>
+<ul>
+<li>1、主机到网络层　　<br>　　实际上TCP/IP参考模型没有真正描述这一层的实现，只是要求能够提供给其上层-网络互连层一个访问接口，以便在其上传递IP分组。由于这一层次未被定义，所以其具体的实现方法将随着网络类型的不同而不同。　　
+　　</li>
+<li>2、网络互连层　　<br>　　网络互连层是整个TCP/IP协议栈的核心。它的功能是把分组发往目标网络或主机。同时，为了尽快地发送分组，可能需要沿不同的路径同时进行分组传递。因此，分组到达的顺序和发送的顺序可能不同，这就需要上层必须对分组进行排序。　　<br>　　网络互连层定义了分组格式和协议，即IP协议（Internet Protocol）。　　<br>　　网络互连层除了需要完成路由的功能外，也可以完成将不同类型的网络（异构网）互连的任务。除此之外，网络互连层还需要完成拥塞控制的功能。　　
+　　</li>
+<li>3、传输层　　<br>　　在TCP/IP模型中，传输层的功能是使源端主机和目标端主机上的对等实体可以进行会话。在传输层定义了两种服务质量不同的协议。即：传输控制协议TCP（transmission control protocol）和用户数据报协议UDP（user datagram protocol）。　　<br>　　TCP协议是一个面向连接的、可靠的协议。它将一台主机发出的字节流无差错地发往互联网上的其他主机。在发送端，它负责把上层传送下来的字节流分成报文段并传递给下层。在接收端，它负责把收到的报文进行重组后递交给上层。TCP协议还要处理端到端的流量控制，以避免缓慢接收的接收方没有足够的缓冲区接收发送方发送的大量数据。　　<br>　　UDP协议是一个不可靠的、无连接协议，主要适用于不需要对报文进行排序和流量控制的场合。　　
+　　</li>
+<li>4、应用层　　<br>　　TCP/IP模型将OSI参考模型中的会话层和表示层的功能合并到应用层实现。　　<br>　　应用层面向不同的网络应用引入了不同的应用层协议。其中，有基于TCP协议的，如文件传输协议（File Transfer Protocol，FTP）、虚拟终端协议（TELNET）、超文本链接协议（Hyper Text Transfer Protocol，HTTP），也有基于UDP协议的。</li>
+</ul>
+<h2 id="算法"><a href="#算法" class="headerlink" title="算法"></a>算法</h2><h3 id="链接判断有无环？怎么找到入口点？"><a href="#链接判断有无环？怎么找到入口点？" class="headerlink" title="链接判断有无环？怎么找到入口点？"></a>链接判断有无环？怎么找到入口点？</h3><blockquote>
+<p><a href="https://www.cnblogs.com/ccdev/archive/2012/09/06/2673618.html" target="_blank" rel="noopener">判断单链表是否存在环及求环入口点</a>  </p>
+</blockquote>
+<h3 id="LRU缓存实现？"><a href="#LRU缓存实现？" class="headerlink" title="LRU缓存实现？"></a>LRU缓存实现？</h3><blockquote>
+<p>HashMap + 双向链表</p>
+</blockquote>
+<h3 id="连续子数组的最大和"><a href="#连续子数组的最大和" class="headerlink" title="连续子数组的最大和?"></a>连续子数组的最大和?</h3><blockquote>
+<p>输入一个整型数组，数组有正数也有负数。数组中一个或连续的多个整数组成一个子数组。求所有子数组的和的最大值。要求时间复杂度为O(n)  </p>
+</blockquote>
+<blockquote>
+<p><a href="http://wiki.jikexueyuan.com/project/for-offer/question-thirty-one.html" target="_blank" rel="noopener">http://wiki.jikexueyuan.com/project/for-offer/question-thirty-one.html</a></p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">public static int findGreatestSumOfSubArray(int[] arr) &#123;</span><br><span class="line">        // 参数校验</span><br><span class="line">        if (arr == null || arr.length &lt; 1) &#123;</span><br><span class="line">            throw new IllegalArgumentException(&quot;Array must contain an element&quot;);</span><br><span class="line">        &#125;</span><br><span class="line">        // 记录最大的子数组和，开始时是最小的整数</span><br><span class="line">        int max = Integer.MIN_VALUE;</span><br><span class="line">        // 当前的和</span><br><span class="line">        int curMax = 0;</span><br><span class="line">        // 数组遍历</span><br><span class="line">        for (int i : arr) &#123;</span><br><span class="line">            // 如果当前和小于等于0，就重新设置当前和</span><br><span class="line">            if (curMax &lt;= 0) &#123;</span><br><span class="line">                curMax = i;</span><br><span class="line">            &#125;</span><br><span class="line">            // 如果当前和大于0，累加当前和</span><br><span class="line">            else &#123;</span><br><span class="line">                curMax += i;</span><br><span class="line">            &#125;</span><br><span class="line">            // 更新记录到的最在的子数组和</span><br><span class="line">            if (max &lt; curMax) &#123;</span><br><span class="line">                max = curMax;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        return max;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="0-1背包问题？"><a href="#0-1背包问题？" class="headerlink" title="0-1背包问题？"></a>0-1背包问题？</h3><blockquote>
+<p>题目描述：<br>有编号分别为a,b,c,d,e的五件物品，它们的重量分别是2,2,6,5,4，它们的价值分别是6,3,5,4,6，现在给你个承重为10的背包，如何让背包里装入的物品具有最大的价值总和？</p>
+</blockquote>
+<p><a href="http://blog.csdn.net/buptgshengod/article/details/43529417" target="_blank" rel="noopener">http://blog.csdn.net/buptgshengod/article/details/43529417</a></p>
+<h2 id="经验"><a href="#经验" class="headerlink" title="经验"></a>经验</h2><h3 id="如何定位问题？"><a href="#如何定位问题？" class="headerlink" title="如何定位问题？"></a>如何定位问题？</h3>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"><i class="fa fa-tag"></i> Java</a>
+          
+            <a href="/tags/面试/" rel="tag"><i class="fa fa-tag"></i> 面试</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/07/10/Nginx-Https-配置/" rel="prev" title="Nginx Https 配置">
+                Nginx Https 配置 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        
+  <div class="bdsharebuttonbox">
+    <a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+    <a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网"></a>
+    <a href="#" class="bds_sqq" data-cmd="sqq" title="分享到QQ好友"></a>
+    <a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"></a>
+    <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"></a>
+    <a href="#" class="bds_tieba" data-cmd="tieba" title="分享到百度贴吧"></a>
+    <a href="#" class="bds_twi" data-cmd="twi" title="分享到Twitter"></a>
+    <a href="#" class="bds_fbook" data-cmd="fbook" title="分享到Facebook"></a>
+    <a href="#" class="bds_more" data-cmd="more"></a>
+    <a class="bds_count" data-cmd="count"></a>
+  </div>
+  <script>
+    window._bd_share_config = {
+      "common": {
+        "bdText": "",
+        "bdMini": "2",
+        "bdMiniList": false,
+        "bdPic": ""
+      },
+      "share": {
+        "bdSize": "16",
+        "bdStyle": "0"
+      },
+      "image": {
+        "viewList": ["tsina", "douban", "sqq", "qzone", "weixin", "twi", "fbook"],
+        "viewText": "分享到：",
+        "viewSize": "16"
+      }
+    }
+  </script>
+
+<script>
+  with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="Austin Brant">
+            
+              <p class="site-author-name" itemprop="name">Austin Brant</p>
+              <p class="site-description motion-element" itemprop="description">冰冻三尺,非一日之寒</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">37</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">30</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">37</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#JAVA语言基础"><span class="nav-number">1.</span> <span class="nav-text">JAVA语言基础</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#java垃圾回收？"><span class="nav-number">1.1.</span> <span class="nav-text">java垃圾回收？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HashMap的实现原理？"><span class="nav-number">1.2.</span> <span class="nav-text">HashMap的实现原理？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#什么是值传递和引用传递？java中是值传递还是引用传递，还是都有"><span class="nav-number">1.3.</span> <span class="nav-text">什么是值传递和引用传递？java中是值传递还是引用传递，还是都有?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#接口和抽象类的差同是什么"><span class="nav-number">1.4.</span> <span class="nav-text">接口和抽象类的差同是什么?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#接口与继承"><span class="nav-number">1.5.</span> <span class="nav-text">接口与继承</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#为什么wait-notify-和-notifyAll这些方法不在thread类里面"><span class="nav-number">1.6.</span> <span class="nav-text">为什么wait, notify 和 notifyAll这些方法不在thread类里面?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#String、StringBuffer与StringBuilder的区别"><span class="nav-number">1.7.</span> <span class="nav-text">String、StringBuffer与StringBuilder的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Thread类的sleep-方法和对象的wait-方法都可以让线程暂停执行，它们有什么区别"><span class="nav-number">1.8.</span> <span class="nav-text">Thread类的sleep()方法和对象的wait()方法都可以让线程暂停执行，它们有什么区别?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重载（Overload）和重写（Override）的区别。重载的方法能否根据返回类型进行区分？"><span class="nav-number">1.9.</span> <span class="nav-text">重载（Overload）和重写（Override）的区别。重载的方法能否根据返回类型进行区分？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#阐述静态变量和实例变量的区别。"><span class="nav-number">1.10.</span> <span class="nav-text">阐述静态变量和实例变量的区别。</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JVM"><span class="nav-number">2.</span> <span class="nav-text">JVM</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#JVM内存分哪几个区，每个区的作用是什么"><span class="nav-number">2.1.</span> <span class="nav-text">JVM内存分哪几个区，每个区的作用是什么?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#java类加载过程"><span class="nav-number">2.2.</span> <span class="nav-text">java类加载过程?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#解释内存中的栈-stack-、堆-heap-和方法区-method-area-的用法"><span class="nav-number">2.3.</span> <span class="nav-text">解释内存中的栈(stack)、堆(heap)和方法区(method area)的用法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#描述一下JVM加载class文件的原理机制？"><span class="nav-number">2.4.</span> <span class="nav-text">描述一下JVM加载class文件的原理机制？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-Boot"><span class="nav-number">3.</span> <span class="nav-text">Spring Boot</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ioc与aop"><span class="nav-number">3.1.</span> <span class="nav-text">ioc与aop?</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#IOC"><span class="nav-number">3.1.1.</span> <span class="nav-text">IOC</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AOP"><span class="nav-number">3.1.2.</span> <span class="nav-text">AOP</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#线程池几种实现？使用场景？"><span class="nav-number">3.2.</span> <span class="nav-text">线程池几种实现？使用场景？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Schedule执行原理？"><span class="nav-number">3.3.</span> <span class="nav-text">@Schedule执行原理？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#统一异常处理？"><span class="nav-number">3.4.</span> <span class="nav-text">统一异常处理？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MYSQL"><span class="nav-number">4.</span> <span class="nav-text">MYSQL</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ACID-什么情况下会触发rollback"><span class="nav-number">4.1.</span> <span class="nav-text">ACID? 什么情况下会触发rollback?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#索引是什么？有什么作用以及优缺点？"><span class="nav-number">4.2.</span> <span class="nav-text">索引是什么？有什么作用以及优缺点？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#什么是事务？"><span class="nav-number">4.3.</span> <span class="nav-text">什么是事务？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Having与Where的区别"><span class="nav-number">4.4.</span> <span class="nav-text">Having与Where的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#聚集索引和非聚集索引"><span class="nav-number">4.5.</span> <span class="nav-text">聚集索引和非聚集索引</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MYSQL索引？如何创建？怎么命中索引？"><span class="nav-number">4.6.</span> <span class="nav-text">MYSQL索引？如何创建？怎么命中索引？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#避免重复插入？"><span class="nav-number">4.7.</span> <span class="nav-text">避免重复插入？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Linux"><span class="nav-number">5.</span> <span class="nav-text">Linux</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#统计apache的access-log中访问量最多的5个IP"><span class="nav-number">5.1.</span> <span class="nav-text">统计apache的access.log中访问量最多的5个IP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#杀死全部python进程"><span class="nav-number">5.2.</span> <span class="nav-text">杀死全部python进程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#符号链接与硬链接的区别"><span class="nav-number">5.3.</span> <span class="nav-text">符号链接与硬链接的区别</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#网络"><span class="nav-number">6.</span> <span class="nav-text">网络</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#请简述TCP-UDP的区别"><span class="nav-number">6.1.</span> <span class="nav-text">请简述TCP\UDP的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#get请求和post请求区别？"><span class="nav-number">6.2.</span> <span class="nav-text">get请求和post请求区别？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#四层协议？TCP三次握手？"><span class="nav-number">6.3.</span> <span class="nav-text">四层协议？TCP三次握手？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在浏览器中输入网址之后执行会发生什么？"><span class="nav-number">6.4.</span> <span class="nav-text">在浏览器中输入网址之后执行会发生什么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HTTP-协议包括哪些请求？"><span class="nav-number">6.5.</span> <span class="nav-text">HTTP 协议包括哪些请求？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#怎么解决跨域问题？"><span class="nav-number">6.6.</span> <span class="nav-text">怎么解决跨域问题？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#说一说OSI七层模型？"><span class="nav-number">6.7.</span> <span class="nav-text">说一说OSI七层模型？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#说一说TCP-IP四层模型"><span class="nav-number">6.8.</span> <span class="nav-text">说一说TCP/IP四层模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#算法"><span class="nav-number">7.</span> <span class="nav-text">算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#链接判断有无环？怎么找到入口点？"><span class="nav-number">7.1.</span> <span class="nav-text">链接判断有无环？怎么找到入口点？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LRU缓存实现？"><span class="nav-number">7.2.</span> <span class="nav-text">LRU缓存实现？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#连续子数组的最大和"><span class="nav-number">7.3.</span> <span class="nav-text">连续子数组的最大和?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0-1背包问题？"><span class="nav-number">7.4.</span> <span class="nav-text">0-1背包问题？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#经验"><span class="nav-number">8.</span> <span class="nav-text">经验</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#如何定位问题？"><span class="nav-number">8.1.</span> <span class="nav-text">如何定位问题？</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Austin Brant</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_sphere.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
