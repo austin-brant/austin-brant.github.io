@@ -84,7 +84,7 @@
 <meta name="description" content="冰冻三尺,非一日之寒">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Austin Brant">
-<meta property="og:url" content="http://yoursite.com/tags/Springboot/index.html">
+<meta property="og:url" content="http://yoursite.com/tags/SpringBoot/index.html">
 <meta property="og:site_name" content="Austin Brant">
 <meta property="og:description" content="冰冻三尺,非一日之寒">
 <meta property="og:locale" content="zh-Hans">
@@ -120,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/tags/Springboot/">
+  <link rel="canonical" href="http://yoursite.com/tags/SpringBoot/">
 
 
 
 
 
-  <title>标签: Springboot | Austin Brant</title>
+  <title>标签: SpringBoot | Austin Brant</title>
   
 
 
@@ -278,7 +278,7 @@
 
     <div id="posts" class="posts-collapse">
       <div class="collection-title">
-        <h1>Springboot<small>标签</small>
+        <h1>SpringBoot<small>标签</small>
         </h1>
       </div>
 
@@ -290,95 +290,17 @@
 
       <h2 class="post-title">
         
-            <a class="post-title-link" href="/2019/12/20/Springboot集成mybatis自定义插件开发/" itemprop="url">
+            <a class="post-title-link" href="/2020/01/10/SpringBoot基本原理/" itemprop="url">
               
-                <span itemprop="name">Springboot集成mybatis自定义插件开发</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated" datetime="2019-12-20T20:14:43+08:00" content="2019-12-20">
-          12-20
-        </time>
-      </div>
-
-    </header>
-  </article>
-
-
-      
-        
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/2019/08/29/Spring-Boot集成Mybatis/" itemprop="url">
-              
-                <span itemprop="name">Spring Boot集成Mybatis</span>
+                <span itemprop="name">SpringBoot基本原理</span>
               
             </a>
         
       </h2>
 
       <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated" datetime="2019-08-29T20:53:01+08:00" content="2019-08-29">
-          08-29
-        </time>
-      </div>
-
-    </header>
-  </article>
-
-
-      
-        
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/2019/07/12/Spring-Boot-Zookeeper-Curator-实现分布式锁/" itemprop="url">
-              
-                <span itemprop="name">Spring-Boot + Zookeeper(Curator)实现分布式锁</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated" datetime="2019-07-12T19:50:14+08:00" content="2019-07-12">
-          07-12
-        </time>
-      </div>
-
-    </header>
-  </article>
-
-
-      
-        
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/2019/07/10/Spring-Boot-过滤器vs拦截器/" itemprop="url">
-              
-                <span itemprop="name">[Spring-Boot]过滤器vs拦截器</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated" datetime="2019-07-10T21:55:32+08:00" content="2019-07-10">
-          07-10
+        <time class="post-time" itemprop="dateCreated" datetime="2020-01-10T20:51:16+08:00" content="2020-01-10">
+          01-10
         </time>
       </div>
 
@@ -440,7 +362,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">37</span>
+                  <span class="site-state-item-count">47</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -451,7 +373,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">30</span>
+                  <span class="site-state-item-count">34</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -462,7 +384,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">37</span>
+                  <span class="site-state-item-count">45</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -506,7 +428,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
@@ -944,6 +866,102 @@
 
                   resultItem += "</li>";
                   resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
+   resultItems.push({
                     item: resultItem,
                     searchTextCount: searchTextCount,
                     hitCount: hitCount,

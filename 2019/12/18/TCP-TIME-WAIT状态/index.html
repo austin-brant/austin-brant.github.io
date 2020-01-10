@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Tcp,Http,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Austin Brant" type="application/atom+xml">
+
+
+
+
+
+
+<meta name="description" content="TIME_WAIT状态是TCP连接中主动关闭连接的一方会进入的状态，在发出最后一个ACK包之后，主动关闭方进入TIME_WAIT状态，从而确保:  ACK包到达对端 等待网络中之前迷路的数据包完全消失，防止端口被复用的时候收到迷路包从而出现收包错误  TIME_WAIT状态会持续2MSL（max segment lifetime）的时间，一般1分钟到4分钟。在这段时间内端口不能被重新分配使用。 T">
+<meta name="keywords" content="Tcp,Http">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TCP TIME_WAIT状态">
+<meta property="og:url" content="http://yoursite.com/2019/12/18/TCP-TIME-WAIT状态/index.html">
+<meta property="og:site_name" content="Austin Brant">
+<meta property="og:description" content="TIME_WAIT状态是TCP连接中主动关闭连接的一方会进入的状态，在发出最后一个ACK包之后，主动关闭方进入TIME_WAIT状态，从而确保:  ACK包到达对端 等待网络中之前迷路的数据包完全消失，防止端口被复用的时候收到迷路包从而出现收包错误  TIME_WAIT状态会持续2MSL（max segment lifetime）的时间，一般1分钟到4分钟。在这段时间内端口不能被重新分配使用。 T">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/tcp_ip_3_handshake.png">
+<meta property="og:updated_time" content="2020-01-10T13:01:56.863Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TCP TIME_WAIT状态">
+<meta name="twitter:description" content="TIME_WAIT状态是TCP连接中主动关闭连接的一方会进入的状态，在发出最后一个ACK包之后，主动关闭方进入TIME_WAIT状态，从而确保:  ACK包到达对端 等待网络中之前迷路的数据包完全消失，防止端口被复用的时候收到迷路包从而出现收包错误  TIME_WAIT状态会持续2MSL（max segment lifetime）的时间，一般1分钟到4分钟。在这段时间内端口不能被重新分配使用。 T">
+<meta name="twitter:image" content="http://yoursite.com/images/tcp_ip_3_handshake.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/12/18/TCP-TIME-WAIT状态/">
+
+
+
+
+
+  <title>TCP TIME_WAIT状态 | Austin Brant</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Austin Brant</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/18/TCP-TIME-WAIT状态/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Austin Brant">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Austin Brant">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">TCP TIME_WAIT状态</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-18T18:57:17+08:00">
+                2019-12-18
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2020-01-10T21:01:56+08:00">
+                2020-01-10
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  3.5k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  12
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>TIME_WAIT</strong>状态是TCP连接中<strong>主动关闭连接</strong>的一方会进入的状态，在发出最后一个ACK包之后，主动关闭方进入<strong>TIME_WAIT</strong>状态，从而确保:</p>
+<ul>
+<li>ACK包到达对端</li>
+<li>等待网络中之前迷路的数据包完全消失，防止端口被复用的时候收到迷路包从而出现收包错误</li>
+</ul>
+<p><strong>TIME_WAIT</strong>状态会持续<strong>2MSL</strong>（max segment lifetime）的时间，一般1分钟到4分钟。在这段时间内端口不能被重新分配使用。</p>
+<p><strong>TIME_WAIT</strong>并不会占用过多的系统资源，但是可以通过修改内核参数<code>/etc/sysctl.conf</code>来限制<strong>TIME_WAIT</strong>数量。</p>
+<h3 id="四次挥手过程"><a href="#四次挥手过程" class="headerlink" title="四次挥手过程"></a>四次挥手过程</h3><p>先来了解TCP四次挥手的过程：</p>
+<p><img src="/images/tcp_ip_3_handshake.png" alt></p>
+<ul>
+<li><p>第一次：主机 1（可以是客户端，也可以是服务器端），设置 <strong>Sequence Number</strong> 和 <strong>Acknowledgment Number</strong>，向主机 2 发送一个 <strong>FIN</strong> 报文段；此时，主机1进入 <strong>FIN_WAIT_1</strong> 状态；这表示主机 1 没有数据要发送给主机 2 了； </p>
+</li>
+<li><p>第二次：主机 2 收到了主机 1 发送的 <strong>FIN</strong> 报文段，向主机 1 回一个 <strong>ACK</strong> 报文段，<strong>Acknowledgment Number</strong> 为 <strong>Sequence Number</strong> 加 1 ；主机 1 进入 <strong>FIN_WAIT_2</strong> 状态；主机 2 告诉主机 1，我“同意”你的关闭请求；</p>
+</li>
+<li><p>第三次：主机 2 向主机 1 发送FIN报文段，请求关闭连接，同时主机 2 进入<strong>LAST_ACK</strong> 状态；</p>
+</li>
+<li><p>第四次：主机 1 收到主机 2 发送的 <strong>FIN报文段</strong>，向主机2发送 <strong>ACK</strong> 报文段，然后主机1进入 <strong>TIME_WAIT</strong> 状态；主机 2 收到主机 1 的<strong>ACK</strong>报文段以后，就关闭连接；此时，主机1等待 <strong>2 * MSL</strong> 后依然没有收到回复，则证明Server端已正常关闭，那好，主机1也可以关闭连接了。</p>
+</li>
+</ul>
+<p><strong>注：</strong> <strong>MSL</strong>是指<code>Max Segment Lifetime</code>，即<strong>一个IP数据包能在网络中生存的最长时间</strong>，超过这个时间，IP数据包将在网络中消失。每种TCP协议的实现方法均要指定一个合适的MSL值，如RFC1122给出的建议值为2分钟，又如Berkeley体系的TCP实现通常选择30秒作为MSL值。这意味着<strong>TIME_WAIT</strong>的典型持续时间为<code>1-4</code>分钟。</p>
+<h3 id="TCP四次挥手过程中通信双方状态解析"><a href="#TCP四次挥手过程中通信双方状态解析" class="headerlink" title="TCP四次挥手过程中通信双方状态解析"></a>TCP四次挥手过程中通信双方状态解析</h3><ul>
+<li><p><strong>FIN_WAIT_1</strong><br>其实<strong>FIN_WAIT_1</strong>和<strong>FIN_WAIT_2</strong>状态的真正含义都是表示等待对方的<strong>FIN</strong>报文。而这两种状态的区别是：</p>
+<ul>
+<li><strong>FIN_WAIT_1</strong>状态实际上是当<strong>SOCKET</strong>在<strong>ESTABLISHED</strong>状态时，它想主动关闭连接，向对方发送了<strong>FIN</strong>报文，此时该<strong>SOCKET</strong>即进入到<strong>FIN_WAIT_1</strong>状态。而当对方回应ACK报文后，则进入到<strong>FIN_WAIT_2</strong>状态，当然在实际的正常情况下，无论对方何种情况下，都应该马上回应ACK报文，所以<strong>FIN_WAIT_1状态一般是比较难见到的</strong>，而<strong>FIN_WAIT_2</strong>状态还有时常常可以用<strong>netstat</strong>看到。（主动方）</li>
+</ul>
+</li>
+<li><p><strong>FIN_WAIT_2</strong><br>实际上<strong>FIN_WAIT_2</strong>状态下的<strong>SOCKET</strong>，表示<strong>半连接</strong>，也即有一方要求close连接，但另外还告诉对方，我暂时还有点数据需要传送给你(ACK信息)，稍后再关闭连接。（主动方）</p>
+</li>
+<li><p><strong>CLOSE_WAIT</strong><br>表示在等待关闭。当对方<strong>close</strong>一个<strong>SOCKET</strong>后发送<strong>FIN</strong>报文给你，你自然会回应一个<strong>ACK</strong>报文给对方，此时则进入到<strong>CLOSE_WAIT</strong>状态。接下来呢，实际上你真正需要考虑的事情是察看你是否还有数据发送给对方，如果没有的话，那么你也就可以 <strong>close</strong>这个<strong>SOCKET</strong>，发送<strong>FIN</strong>报文给对方，也即关闭连接。所以你在<strong>CLOSE_WAIT</strong>状态下，需要完成的事情是等待你去关闭连接。（被动方）</p>
+</li>
+<li><p><strong>LAST_ACK</strong><br>被动关闭一方在发送<strong>FIN</strong>报文后，最后等待对方的<strong>ACK</strong>报文。当收到ACK报文后，也即可以进入到<strong>CLOSED</strong>状态了。（被动方）</p>
+</li>
+<li><p><strong>TIME_WAIT</strong><br>表示收到了对方的<strong>FIN</strong>报文，并发送出了<strong>ACK</strong>报文，就等<strong>2MSL</strong>后即可回到<strong>CLOSED</strong>状态了。如果<strong>FIN</strong> WAIT1状态下，收到了对方同时带<strong>FIN</strong>标志和<strong>ACK</strong>标志的报文时，可以直接进入到<strong>TIME_WAIT</strong>状态，而无须经过<strong>FIN_WAIT_2</strong>状态。（主动方）</p>
+</li>
+<li><p><strong>CLOSED</strong><br>表示SOCKET连接已中断</p>
+</li>
+</ul>
+<h3 id="为什么会有TIME-WAIT状态"><a href="#为什么会有TIME-WAIT状态" class="headerlink" title="为什么会有TIME_WAIT状态"></a>为什么会有TIME_WAIT状态</h3><ul>
+<li><p><strong>可靠地实现TCP全双工连接的可靠终止</strong><br>TCP协议在关闭连接的四次握手过程中，<strong>最终ACK是由主动关闭连接的一端发出的</strong>，如果这个<strong>ACK</strong>丢失，被动方将重发最终的<strong>FIN</strong>，因此主机1就必须维护状态信息<strong>TIME_WAIT</strong> 允许它发送最终的ACK。如果主机1不维持<strong>TIME_WAIT</strong>的状态，而是处于<strong>CLOSED</strong>状态，那么主机1将响应<strong>RST</strong>（reset）数据包，主机2收到后将此数据报解释成一个异常（Java中会抛出<code>connection reset</code>的SocketException）。因而，要实现TCP全双工连接的正常终止，必须处理终止过程中四个数据包任何一个分节丢失的情况，主动关闭连接的主机1必须维持TIME_WAIT的状态。</p>
+</li>
+<li><p><strong>保证此次连接的重复数据段从网络中消失</strong><br>TCP数据包可能由于路由器异常而“迷路”，在“迷路”期间，TCP发送端可能因确认超时而重发这个分节，“迷路”的分节在路由器恢复正常后也会被发送到最终的目的地，这个迟到的“迷路”数据包到达时可能会引起问题。在关闭“前一个连接”之后，马上又建立起一个相同的IP和端口之间的“新连接”，这会导致“前一个连接”的迷路重复分组在“前一个连接”终止后到达，从而被“新连接”接收到了。</p>
+<p>  为了避免以上情况，TCP/IP协议不允许处于TIME_WAIT状态的连接启动一个新的可用连接，因为TIME_WAIT状态持续2MSL，这就可以<strong>保证当成功建立一个新TCP连接的时候，来自旧连接重复分组已经在网络中消失</strong>。</p>
+</li>
+</ul>
+<h3 id="出现太多TIME-WAIT危害"><a href="#出现太多TIME-WAIT危害" class="headerlink" title="出现太多TIME_WAIT危害"></a>出现太多TIME_WAIT危害</h3><blockquote>
+<p>在<strong>高并发短连接的TCP服务器</strong>上，当服务器处理完请求后会立刻按照主动正常关闭连接。这个场景下，会出现大量socket处于<strong>TIMEWAIT</strong>状态。如果客户端的并发量持续很高，此时部分客户端就会显示连接不上。</p>
+</blockquote>
+<p>解释下这个场景。主动正常关闭TCP连接，都会出现<strong>TIMEWAIT</strong>。为什么我们要关注这个高并发短连接呢？有两个方面需要注意：</p>
+<ul>
+<li><p>① 高并发可以让服务器在短时间范围内同时占用大量端口，而端口有个0~65535的范围，并不是很多，刨除系统和其他服务要用的，剩下的就更少了。</p>
+</li>
+<li><p>② 在这个场景中，短连接表示“业务处理+传输数据的时间 远远小于 <strong>TIMEWAIT</strong>超时的时间”的连接。 这里有个相对长短的概念，比如，取一个web页面，1秒钟的http短连接处理完业务，在关闭连接之后，这个业务用过的端口会停留在<strong>TIMEWAIT</strong>状态几分钟，而这几分钟，其他HTTP请求来临的时候是无法占用此端口的。单用这个业务计算服务器的利用率会发现，服务器干正经事的时间和端口（资源）被挂着无法被使用的时间的比例是 <code>1 ：几百</code>，服务器资源严重浪费。</p>
+</li>
+</ul>
+<p>说个题外话，从这个意义出发来考虑服务器性能调优的话，长连接业务的服务就不需要考虑<strong>TIMEWAIT</strong>状态。同时，假如你对服务器业务场景非常熟悉，你会发现，在实际业务场景中，一般长连接对应的业务的并发量并不会很高.</p>
+<p>综合这两个方面，<strong>持续的到达一定量的高并发短连接，会使服务器因端口资源不足而拒绝为一部分客户服务</strong>。</p>
+<h3 id="TIME-WAIT太多怎么解决"><a href="#TIME-WAIT太多怎么解决" class="headerlink" title="TIME_WAIT太多怎么解决"></a>TIME_WAIT太多怎么解决</h3><p>修改<code>/etc/sysctl.conf</code>：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 表示开启重用</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 允许将TIME-WAIT sockets重新用于新的TCP连接，默认为0，表示关闭；</span></span><br><span class="line">net.ipv4.tcp_tw_reuse = 1  </span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 表示开启TCP连接中TIME-WAIT sockets的快速回收，默认为0，表示关闭。</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> net.ipv4.tcp_timestamps 开启时，net.ipv4.tcp_tw_recycle开启才能生效</span></span><br><span class="line">net.ipv4.tcp_tw_recycle = 1 </span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 表示开启TCP连接中TIME-WAIT sockets的快速回收，默认为0，表示关闭</span></span><br><span class="line">net.ipv4.tcp_timestamps = 1     </span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 用来设置保持在FIN_WAIT_2状态的时间</span></span><br><span class="line">net.ipv4.tcp_fin_timeout = 2</span><br></pre></td></tr></table></figure>
+
+<p>保存后<code>sysctl -p</code>生效</p>
+<h3 id="地址reuse问题"><a href="#地址reuse问题" class="headerlink" title="地址reuse问题"></a>地址reuse问题</h3><p>在写一个unix server程序时，经常需要在命令行重启它，绝大多数时候工作正常，但是某些时候会抛出异常 <code>bind: address already in use</code>，于是重启失败。</p>
+<p>上面这个就是地址reuse问题，就是由于<strong>TIME_WAIT</strong>状态产生的，我们有以下方案来解决这个问题：</p>
+<h4 id="SO-REUSEADDR"><a href="#SO-REUSEADDR" class="headerlink" title="SO_REUSEADDR"></a>SO_REUSEADDR</h4><p>这个socket选项通知内核：<strong>如果端口忙，但TCP状态位于TIME_WAIT，可以重用端口</strong>。</p>
+<blockquote>
+<p>一个socket由相关五元组构成: <strong>协议、本地地址、本地端口、远程地址、远程端口</strong>。<strong>SO_REUSEADDR仅仅表示可以重用本地本地地址、本地端口，整个相关五元组还是唯一确定的</strong>。所以，重启后的服务程序有可能收到非期望数据。必须慎重使用SO_REUSEADDR选项。</p>
+</blockquote>
+<p><strong>一般来说，一个端口释放后会等待两分钟之后才能再被使用，SO_REUSEADDR是让端口释放后立即就可以被再次使用。</strong></p>
+<p><strong>SO_REUSEADDR</strong>用于对TCP处于<strong>TIME_WAIT</strong>状态下的socket，才可以重复绑定使用。server程序总是应该在调用bind()之前设置SO_REUSEADDR选项。先调用close()的一方会进入TIME_WAIT状态。</p>
+<p>SO_REUSEADDR允许启动一个监听服务器并捆绑其众所周知端口，即使以前建立的将此端口用做他们的本地端口的连接仍存在。这通常是重启监听服务器时出现，若不设置此选项，则bind时将出错。</p>
+<h4 id="SO-LINGER"><a href="#SO-LINGER" class="headerlink" title="SO_LINGER"></a>SO_LINGER</h4><p>Linux网络编程中，socket的选项很多。其中几个比较重要的选项就包括SO_LINGER。</p>
+<p>在默认情况下,当调用close()关闭socket的使用，close()会立即返回,但是,如果<code>send buffer</code>中还有数据，系统会试着先把<code>send buffer</code>中的数据发送出去，SO_LINGER选项则是用来修改这种默认操作的。</p>
+<p>SO_LINGER是一个socket选项，可以通过<code>set sockopt API</code>进行设置，使用起来比较简单，但其实现机制比较复杂，且字面意思上比较难理解。SO_LINGER的值用如下数据结构表示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">linger</span> &#123;</span></span><br><span class="line">    <span class="keyword">int</span> l_onoff <span class="comment">//0 = off, nonzero = on(开关)</span></span><br><span class="line">    <span class="keyword">int</span> l_linger <span class="comment">//linger time(延迟时间)</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其取值和处理如下：</p>
+<ul>
+<li><p>设置 l_onoff 为0，则该选项关闭，l_linger的值被忽略，等于内核缺省情况，close()调用会立即返回给调用者，如果可能将会传输任何未发送的数据；</p>
+</li>
+<li><p>设置 l_onoff 为非0，l_linger为0，当调用close()的时候,TCP连接会立即断开。send buffer中未被发送的数据将被丢弃，并向对方发送一个RST信息。值得注意的是，由于这种方式，不是以4次握手方式结束TCP连接，所以，TCP连接将不会进入TIME_WAIT状态，这样会导致新建立的可能和旧连接的数据造成混乱。这种关闭方式称为“强制”或“失效”关闭。通常会看到 <code>Connection reset by peer</code> 之类的错误；</p>
+</li>
+<li><p>设置 l_onoff 为非0，l_linger为非0，在这种情况下，会使得close()返回得到延迟。调用close()去关闭socket的时候，内核将会延迟。也就是说，如果send buffer中还有数据尚未发送，该进程将会被休眠直到一下任何一种情况发生：</p>
+<blockquote>
+<p>a. send buffer中的所有数据都被发送并且得到对方TCP的应答消息；</p>
+<p>b.延迟时间消耗完。在延迟时间被消耗完之后，send buffer中的所有数据都将会被丢弃。这种关闭称为“优雅的”关闭。</p>
+</blockquote>
+</li>
+</ul>
+<p>因此，<strong>在正常情况下，在socket调用close()之前设置SO_LINGER超时为0都不是个好的选择</strong>。但也有些情况下需要使用SO_LINGER：</p>
+<ul>
+<li><p>如果server返回无效数据或者超时时，<strong>SO_LINGER有助于避免卡在CLOSE_WAIT或TIME_WAIT的状态</strong>；</p>
+</li>
+<li><p>如果必须启动有数千个客户端连接的app，则可以考虑设置SO_LINGER，从而<strong>避免数千个socket处于TIME_WAIT状态，从而减少可用端口在服务重启后，新客户端连接受到的影响</strong>；</p>
+</li>
+</ul>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>通过上面的讨论，我们知道<strong>TIME_WAIT</strong>状态是友好的，并不是多余的。TCP要保证在所有可能的情况下使得所有的数据都能够正确送达。当你关闭一个socket时，主动关闭一端的socket将进入TIME_WAIT状态，而被动关闭的一方则进入CLOSED状态，这的确能够保证所有的数据都被传送。</p>
+<p>当一个socket关闭的时候，是通过两端四次挥手完成的，当一端调用close()时，就说明本端没有数据要传送了，这好像看来在挥手完成以后，socket就可以处于CLOSED状态了，其实不然，原因是这样安排状态有两个问题：</p>
+<ul>
+<li>第一，我们没有任何机制保证最后的一个ACK能够正常传输；</li>
+<li>第二，网络仍然可能有残余的数据包，我们也必须能够正常处理。</li>
+</ul>
+<p>TIME_WAIT状态就是为了解决这两个问题而生的。服务端为了解决这个TIME_WAIT问题，可选的方式有3种：</p>
+<ul>
+<li>保证由客户端主动发起关闭</li>
+<li>关闭的时候使用RST方式（set SO_LINGER）</li>
+<li>对处于TIME_WAIT状态的TPC允许重用（set SO_REUSEADDR）</li>
+</ul>
+<p>参考：<br><a href="https://blog.yangx.site/2018/07/03/tcp-ip-time-wait/" target="_blank" rel="noopener">TCP/IP中TIME_WAIT状态详解</a><br><a href="https://blog.51cto.com/11859650/1917938" target="_blank" rel="noopener">TCP——-为什么会有TIME_WAIT状态 ?</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Tcp/" rel="tag"><i class="fa fa-tag"></i> Tcp</a>
+          
+            <a href="/tags/Http/" rel="tag"><i class="fa fa-tag"></i> Http</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/12/13/JVM基础-入门篇/" rel="next" title="JVM基础 - 入门篇">
+                <i class="fa fa-chevron-left"></i> JVM基础 - 入门篇
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/12/20/Redis底层数据结构/" rel="prev" title="Redis底层数据结构">
+                Redis底层数据结构 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        
+  <div class="bdsharebuttonbox">
+    <a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+    <a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网"></a>
+    <a href="#" class="bds_sqq" data-cmd="sqq" title="分享到QQ好友"></a>
+    <a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"></a>
+    <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"></a>
+    <a href="#" class="bds_tieba" data-cmd="tieba" title="分享到百度贴吧"></a>
+    <a href="#" class="bds_twi" data-cmd="twi" title="分享到Twitter"></a>
+    <a href="#" class="bds_fbook" data-cmd="fbook" title="分享到Facebook"></a>
+    <a href="#" class="bds_more" data-cmd="more"></a>
+    <a class="bds_count" data-cmd="count"></a>
+  </div>
+  <script>
+    window._bd_share_config = {
+      "common": {
+        "bdText": "",
+        "bdMini": "2",
+        "bdMiniList": false,
+        "bdPic": ""
+      },
+      "share": {
+        "bdSize": "16",
+        "bdStyle": "0"
+      },
+      "image": {
+        "viewList": ["tsina", "douban", "sqq", "qzone", "weixin", "twi", "fbook"],
+        "viewText": "分享到：",
+        "viewSize": "16"
+      }
+    }
+  </script>
+
+<script>
+  with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="Austin Brant">
+            
+              <p class="site-author-name" itemprop="name">Austin Brant</p>
+              <p class="site-description motion-element" itemprop="description">冰冻三尺,非一日之寒</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">47</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">45</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#四次挥手过程"><span class="nav-number">1.</span> <span class="nav-text">四次挥手过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TCP四次挥手过程中通信双方状态解析"><span class="nav-number">2.</span> <span class="nav-text">TCP四次挥手过程中通信双方状态解析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#为什么会有TIME-WAIT状态"><span class="nav-number">3.</span> <span class="nav-text">为什么会有TIME_WAIT状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#出现太多TIME-WAIT危害"><span class="nav-number">4.</span> <span class="nav-text">出现太多TIME_WAIT危害</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TIME-WAIT太多怎么解决"><span class="nav-number">5.</span> <span class="nav-text">TIME_WAIT太多怎么解决</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#地址reuse问题"><span class="nav-number">6.</span> <span class="nav-text">地址reuse问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#SO-REUSEADDR"><span class="nav-number">6.1.</span> <span class="nav-text">SO_REUSEADDR</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SO-LINGER"><span class="nav-number">6.2.</span> <span class="nav-text">SO_LINGER</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">7.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Austin Brant</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_sphere.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -105,8 +105,9 @@
 <meta property="og:image" content="http://yoursite.com/images/redis_sorted_weibo.jpg">
 <meta property="og:image" content="http://yoursite.com/images/redis_more_yingyong.jpg">
 <meta property="og:image" content="http://yoursite.com/images/redis_collect_elec.jpg">
+<meta property="og:image" content="http://yoursite.com/images/redisson_distributed_lock.png">
 <meta property="og:image" content="http://yoursite.com/images/redis_cluster_crc_ms.jpg">
-<meta property="og:updated_time" content="2019-12-06T12:50:53.518Z">
+<meta property="og:updated_time" content="2020-01-10T11:13:29.668Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis数据结构及常见使用场景">
 <meta name="twitter:description" content="Redis基础数据类型及使用场景 String   缓存功能：String字符串是最常用的数据类型，不仅仅是Redis，各个语言都是最基本类型，因此，利用Redis作为缓存，配合其它数据库作为存储层，利用Redis支持高并发的特点，可以大大加快系统的读写速度、以及降低后端数据库的压力。  计数器：许多系统都会使用Redis作为系统的实时计数器，可以快速实现计数和查询的功能。而且最终的数据结果可以按">
@@ -350,8 +351,8 @@
               
                 <span class="post-meta-item-text">更新于&#58;</span>
               
-              <time title="更新于" itemprop="dateModified" datetime="2019-12-06T20:50:53+08:00">
-                2019-12-06
+              <time title="更新于" itemprop="dateModified" datetime="2020-01-10T19:13:29+08:00">
+                2020-01-10
               </time>
             
           </span>
@@ -416,7 +417,7 @@
                   <span class="post-meta-item-text">字数统计&#58;</span>
                 
                 <span title="字数统计">
-                  2.4k
+                  2.5k
                 </span>
               
 
@@ -564,6 +565,7 @@
 <h3 id="Pipeline"><a href="#Pipeline" class="headerlink" title="Pipeline"></a>Pipeline</h3><p>可以批量执行一组指令，一次性返回全部结果，可以减少频繁的请求应答。</p>
 <h3 id="Lua"><a href="#Lua" class="headerlink" title="Lua"></a>Lua</h3><p>Redis 支持提交 Lua 脚本来执行一系列的功能, 利用他的原子性。</p>
 <h3 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h3><p>最后一个功能是事务，但 Redis 提供的不是严格的事务，Redis 只保证串行执行命令，并且能保证全部执行，但是执行命令失败时并不会回滚，而是会继续执行下去。</p>
+<h2 id="Redisson实现分布式锁"><a href="#Redisson实现分布式锁" class="headerlink" title="Redisson实现分布式锁"></a>Redisson实现分布式锁</h2><p><img src="/images/redisson_distributed_lock.png" alt></p>
 <h2 id="Redis集群"><a href="#Redis集群" class="headerlink" title="Redis集群"></a>Redis集群</h2><p><img src="/images/redis_cluster_crc_ms.jpg" alt></p>
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p>[1]<a href="https://juejin.im/post/5db66ed9e51d452a2f15d833" target="_blank" rel="noopener">《吊打面试官》系列-Redis基础</a><br>[2]<a href="https://juejin.im/post/5dbef8306fb9a0203f6fa3e2" target="_blank" rel="noopener">《吊打面试官》系列-缓存雪崩、击穿、穿透</a><br>[3]<a href="https://juejin.im/post/5dc3a9fbf265da4d3c072eab" target="_blank" rel="noopener">《吊打面试官》系列-Redis哨兵、持久化、主从、手撕LRU</a><br>[4]<a href="https://juejin.im/post/5dc850b4e51d452c2308ee27" target="_blank" rel="noopener">《吊打面试官》系列-Redis终章凛冬将至、FPX新王登基</a><br>[5]<a href="https://juejin.im/post/5dd09f5af265da0be72aacbd" target="_blank" rel="noopener">《吊打面试官》系列-秒杀系统设计</a></p>
 
@@ -729,7 +731,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">37</span>
+                  <span class="site-state-item-count">47</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -740,7 +742,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">30</span>
+                  <span class="site-state-item-count">34</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -751,7 +753,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">37</span>
+                  <span class="site-state-item-count">45</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -791,7 +793,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Redis基础数据类型及使用场景"><span class="nav-number">1.</span> <span class="nav-text">Redis基础数据类型及使用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#String"><span class="nav-number">1.1.</span> <span class="nav-text">String</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hash"><span class="nav-number">1.2.</span> <span class="nav-text">Hash</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#List"><span class="nav-number">1.3.</span> <span class="nav-text">List</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Set"><span class="nav-number">1.4.</span> <span class="nav-text">Set</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Sorted-Set"><span class="nav-number">1.5.</span> <span class="nav-text">Sorted Set</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redis更多应用场景"><span class="nav-number">1.6.</span> <span class="nav-text">Redis更多应用场景</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Redis-和-Memcached-区别"><span class="nav-number">2.</span> <span class="nav-text">Redis 和 Memcached 区别</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Memcache"><span class="nav-number">2.1.</span> <span class="nav-text">Memcache</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redis"><span class="nav-number">2.2.</span> <span class="nav-text">Redis</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#性能对比"><span class="nav-number">2.3.</span> <span class="nav-text">性能对比</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Redis-线程模型"><span class="nav-number">3.</span> <span class="nav-text">Redis 线程模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#高级用法"><span class="nav-number">4.</span> <span class="nav-text">高级用法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Bitmap"><span class="nav-number">4.1.</span> <span class="nav-text">Bitmap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HyperLogLog"><span class="nav-number">4.2.</span> <span class="nav-text">HyperLogLog</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Geospatial"><span class="nav-number">4.3.</span> <span class="nav-text">Geospatial</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pub-sub"><span class="nav-number">4.4.</span> <span class="nav-text">pub/sub</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Pipeline"><span class="nav-number">4.5.</span> <span class="nav-text">Pipeline</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Lua"><span class="nav-number">4.6.</span> <span class="nav-text">Lua</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#事务"><span class="nav-number">4.7.</span> <span class="nav-text">事务</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Redis集群"><span class="nav-number">5.</span> <span class="nav-text">Redis集群</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">6.</span> <span class="nav-text">参考</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Redis基础数据类型及使用场景"><span class="nav-number">1.</span> <span class="nav-text">Redis基础数据类型及使用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#String"><span class="nav-number">1.1.</span> <span class="nav-text">String</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hash"><span class="nav-number">1.2.</span> <span class="nav-text">Hash</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#List"><span class="nav-number">1.3.</span> <span class="nav-text">List</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Set"><span class="nav-number">1.4.</span> <span class="nav-text">Set</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Sorted-Set"><span class="nav-number">1.5.</span> <span class="nav-text">Sorted Set</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redis更多应用场景"><span class="nav-number">1.6.</span> <span class="nav-text">Redis更多应用场景</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Redis-和-Memcached-区别"><span class="nav-number">2.</span> <span class="nav-text">Redis 和 Memcached 区别</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Memcache"><span class="nav-number">2.1.</span> <span class="nav-text">Memcache</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redis"><span class="nav-number">2.2.</span> <span class="nav-text">Redis</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#性能对比"><span class="nav-number">2.3.</span> <span class="nav-text">性能对比</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Redis-线程模型"><span class="nav-number">3.</span> <span class="nav-text">Redis 线程模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#高级用法"><span class="nav-number">4.</span> <span class="nav-text">高级用法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Bitmap"><span class="nav-number">4.1.</span> <span class="nav-text">Bitmap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HyperLogLog"><span class="nav-number">4.2.</span> <span class="nav-text">HyperLogLog</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Geospatial"><span class="nav-number">4.3.</span> <span class="nav-text">Geospatial</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pub-sub"><span class="nav-number">4.4.</span> <span class="nav-text">pub/sub</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Pipeline"><span class="nav-number">4.5.</span> <span class="nav-text">Pipeline</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Lua"><span class="nav-number">4.6.</span> <span class="nav-text">Lua</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#事务"><span class="nav-number">4.7.</span> <span class="nav-text">事务</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Redisson实现分布式锁"><span class="nav-number">5.</span> <span class="nav-text">Redisson实现分布式锁</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Redis集群"><span class="nav-number">6.</span> <span class="nav-text">Redis集群</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
             
 
           </div>
@@ -811,7 +813,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
