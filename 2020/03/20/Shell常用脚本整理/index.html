@@ -89,7 +89,7 @@
 <meta property="og:site_name" content="Austin Brant">
 <meta property="og:description" content="读取文件每一行123456789101112131415161718#!/bin/bash# 方法1while read linedo    echo $linedone &amp;lt; filename(待读取的文件)# 方法2cat filename(待读取的文件) | while read linedo    echo $linedone# 方法3for line in `cat filename">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2020-03-20T10:10:41.186Z">
+<meta property="og:updated_time" content="2020-03-23T03:10:05.587Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Shell常用脚本整理">
 <meta name="twitter:description" content="读取文件每一行123456789101112131415161718#!/bin/bash# 方法1while read linedo    echo $linedone &amp;lt; filename(待读取的文件)# 方法2cat filename(待读取的文件) | while read linedo    echo $linedone# 方法3for line in `cat filename">
@@ -332,8 +332,8 @@
               
                 <span class="post-meta-item-text">更新于&#58;</span>
               
-              <time title="更新于" itemprop="dateModified" datetime="2020-03-20T18:10:41+08:00">
-                2020-03-20
+              <time title="更新于" itemprop="dateModified" datetime="2020-03-23T11:10:05+08:00">
+                2020-03-23
               </time>
             
           </span>
@@ -398,7 +398,7 @@
                   <span class="post-meta-item-text">字数统计&#58;</span>
                 
                 <span title="字数统计">
-                  943
+                  1k
                 </span>
               
 
@@ -414,7 +414,7 @@
                   <span class="post-meta-item-text">阅读时长 &asymp;</span>
                 
                 <span title="阅读时长">
-                  4
+                  5
                 </span>
               
             </div>
@@ -445,56 +445,54 @@
 <pre><code>sed &apos;s/[ \t]*$//g&apos;</code></pre><p>（3）去所有空格</p>
 <pre><code>sed &apos;s/[[:space:]]//g&apos;</code></pre><h2 id="shell参数扩展"><a href="#shell参数扩展" class="headerlink" title="shell参数扩展"></a>shell参数扩展</h2><ul>
 <li><p>如果parameter为null或者未设置，整个参数替换表达式值为word   </p>
-  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;parameter:-word&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;parameter:-word&#125;</span><br></pre></td></tr></table></figure>
 </li>
-<li><p>如果parameter为null或者未设置，整个参数替换表达式值为word，并且parameter参数值设置为word </p>
-  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">    $&#123;parameter:=word&#125;  </span><br><span class="line">    ```            </span><br><span class="line"></span><br><span class="line"></span><br><span class="line">+ 如果parameter为null或者未设置，则打印出错误信息。否则，整个参数替换表达式值为$parameter</span><br></pre></td></tr></table></figure>
+<li><p>如果parameter为null或者未设置，整个参数替换表达式值为word，并且parameter参数值设置为word   </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;parameter:=word&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如果parameter为null或者未设置，则打印出错误信息。否则，整个参数替换表达式值为$parameter  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;parameter:?word&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如果parameter不为null或者未设置，则整个参数替换表达式值为word  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;parameter:+word&#125;</span><br></pre></td></tr></table></figure>
 
-<p>  ${parameter:?word}</p>
-  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">+ 如果parameter不为null或者未设置，则整个参数替换表达式值为word</span><br></pre></td></tr></table></figure>
-
-<p>  ${parameter:+word}</p>
-  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">    </span><br><span class="line">+ 获得字符串的长度</span><br></pre></td></tr></table></figure>
-
-<p>  ${#parameter}</p>
-  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">    </span><br><span class="line">+  从尾开始扫描word，将匹配word正则表达式的字符过滤掉, %为最短匹配，%%为最长匹配</span><br></pre></td></tr></table></figure>
-
-<p>  ${parameter%word}<br>  ${parameter%%word}</p>
-  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">+ 从头开始扫描word，将匹配word正则表达的字符过滤掉, #为最短匹配，##为最长匹配</span><br></pre></td></tr></table></figure>
-
-<p>  ${parameter#word}<br>  ${parameter##word}</p>
-  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">+ 截取字符串,截取parameter的值的子字符串</span><br></pre></td></tr></table></figure>
-
-<p>  ${parameter:offset}从offset到结束<br>  ${parameter:offset:length}从offset开始截取length个</p>
-  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">+ 字符串替换，将parameter对应值的pattern字符串替换成为string字符串, /表示只替换一次，//表示全部替换</span><br></pre></td></tr></table></figure>
-
-<p>  ${parameter/pattern/string}<br>  ${parameter//pattern/string}</p>
-  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">## Supervise进程监控</span><br><span class="line"></span><br><span class="line">supervise   监控进程，如果挂了，重启进程</span><br></pre></td></tr></table></figure>
 
 </li>
 </ul>
-<p>-p,  状态路径，supervise运行时会在该路径下保存一些文件<br>-f,   启动新的进程命令<br>-F,   配置文件路径 the config file path, if not given, supervise will use the default value “supervise.conf”<br>-r,   while the service exits, supervise will excute the program RESTART_SH before restart the service, and the exiting times be passed          to RESTART_SH as the only argument.<br> -t,   after TIME_LIMIT seconds, the counter for the exiting times will be reset.<br> -v,  print the version of supervise and exit.<br> -h,  print the help message and exit.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">示例：</span><br></pre></td></tr></table></figure>
+<ul>
+<li>获得字符串的长度   <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;#parameter&#125;</span><br></pre></td></tr></table></figure>
 
-<p>supervise -p ../supervise/status/hdfs-dumper -f “sh ./control.sh start” -F ../supervise/conf/supervise.conf</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">## 远程操作</span><br></pre></td></tr></table></figure>
 
-<p>#!/bin/bash</p>
-<p>LIST_FILE=hdfsdumper.num.list</p>
-<p>size=<code>cat ./$LIST_FILE | wc -l</code></p>
-<p>line_index=1<br>while [ $line_index -le $size ]<br>do<br>    machine=<code>cat ./$LIST_FILE | sed -n -e &quot;${line_index}p&quot; | awk -F&#39; &#39; &#39;{print $1}&#39;</code><br>    number=<code>cat ./$LIST_FILE | sed -n -e &quot;${line_index}p&quot; | awk -F&#39; &#39; &#39;{print $2}&#39;</code><br>    nohup expect -c “<br>        spawn ssh root@$machine;<br>        expect {<br>        &quot;Are you sure you want to continue connecting (yes/no)? &quot; {send &quot;yes\r&quot;;exp_continue}<br>        &quot;<em>password: &quot; {send &quot;password\n &quot;; exp_continue}<br>        &quot;]# &quot; {send &quot;su work; exit\n&quot;; exp_continue}<br>        &quot;bash-4.1$</em>&quot; {send &quot;cd /home/work/xxx &amp;&amp; sh control.sh start; exit\n&quot;; exp_continue}<br>        &quot;]$ &quot; {send &quot;cd /home/work/xxx &amp;&amp; sh control.sh start; exit\n&quot;; exp_continue}<br>        }” &amp;<br>    line_index=<code>expr $line_index + 1</code><br>done</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">## 远程同步文件</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<ul>
+<li><p>从尾开始扫描word，将匹配word正则表达式的字符过滤掉, %为最短匹配，%%为最长匹配       </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$&#123;parameter%word&#125;</span><br><span class="line">$&#123;parameter%%word&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>从头开始扫描word，将匹配word正则表达的字符过滤掉, #为最短匹配，##为最长匹配   </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$&#123;parameter#word&#125;</span><br><span class="line">$&#123;parameter##word&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>截取字符串,截取parameter的值的子字符串   </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$&#123;parameter:offset&#125;   从offset到结束</span><br><span class="line">$&#123;parameter:offset:length&#125;   从offset开始截取length个</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>字符串替换，将parameter对应值的pattern字符串替换成为string字符串, /表示只替换一次，//表示全部替换   </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$&#123;parameter/pattern/string&#125;</span><br><span class="line">$&#123;parameter//pattern/string&#125;</span><br></pre></td></tr></table></figure>
 
-<p>#!/bin/bash</p>
-<p>LIST_FILE=hdfsdumper.num.list</p>
-<p>size=<code>cat ./$LIST_FILE | wc -l</code></p>
-<p>file_name=./dumper/jdk.tar.gz</p>
-<p>line_index=1<br>while [ $line_index -le $size ]<br>do<br>    machine=<code>cat ./$LIST_FILE | sed -n -e &quot;${line_index}p&quot; | awk -F&#39; &#39; &#39;{print $1}&#39;</code><br>    number=<code>cat ./$LIST_FILE | sed -n -e &quot;${line_index}p&quot; | awk -F&#39; &#39; &#39;{print $2}&#39;</code><br>    expect -c “<br>        spawn rsync -avz $file_name root@$machine:/home/work/opencrawler<br>        expect {<br>        &quot;Are you sure you want to continue connecting (yes/no)? &quot; {send &quot;yes\r&quot;;exp_continue}<br>        &quot;*password: &quot; {send &quot;password\n &quot;; interact}; }”;<br>    line_index=<code>expr $line_index + 1</code><br>done</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">## switch case</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="Supervise进程监控"><a href="#Supervise进程监控" class="headerlink" title="Supervise进程监控"></a>Supervise进程监控</h2><p>supervise   监控进程，如果挂了，重启进程</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">-p,  状态路径，supervise运行时会在该路径下保存一些文件</span><br><span class="line">-f,   启动新的进程命令</span><br><span class="line">-F,   配置文件路径 the config file path, if not given, supervise will use the default value &quot;supervise.conf&quot;</span><br><span class="line">-r,   while the service exits, supervise will excute the program RESTART_SH before restart the service, and the exiting times be passed          to RESTART_SH as the only argument.</span><br><span class="line"> -t,   after TIME_LIMIT seconds, the counter for the exiting times will be reset.</span><br><span class="line"> -v,  print the version of supervise and exit.</span><br><span class="line"> -h,  print the help message and exit.</span><br></pre></td></tr></table></figure>
 
-<p>cmd=$1<br>case $cmd in<br>start)<br>    echo “in start command.”<br>    if [ -f “running_tag.txt” ];then<br>        echo “running_tag file is exist, already running!”<br>        exit 1<br>    fi<br>    nohup java -Xms1000m -Xmx1000m -Xmn500m -XX:+UseParallelGC ${MAIN_CLASSNAME} &gt;&gt;log/crontabservice_terminal.log 2&gt;&amp;1 &amp;<br>    ret=$?<br>    if [ $ret -eq 0 ];then<br>        echo “start [OK].”<br>    else<br>        echo “start [FAILED].”<br>    fi<br>    ;;<br>stop)<br>    echo “in stop command.”<br>    ret=<code>ps aux | grep &quot;${MAIN_CLASSNAME}&quot; | grep -v &quot;grep&quot; | awk &#39;{print $2}&#39;</code><br>    if [ ! $ret ];then<br>        echo “MODULE:${MAIN_CLASSNAME} not started.”<br>        exit 1<br>    fi<br>    echo “pid:$ret”<br>    kill -9 $ret<br>    if [ $? -eq 0 ];then<br>        rm -f running_tag.txt<br>    fi<br>    rm -f running_tag.txt<br>    echo “Stop [OK].”<br>    ;;<br>*)<br>    help<br>    exit 1<br>    ;;<br>esac</p>
-<pre><code>
-</code></pre>
+<p>示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">supervise -p ../supervise/status/hdfs-dumper -f &quot;sh ./control.sh start&quot; -F ../supervise/conf/supervise.conf</span><br></pre></td></tr></table></figure>
+
+<h2 id="远程操作"><a href="#远程操作" class="headerlink" title="远程操作"></a>远程操作</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/bash</span><br><span class="line"></span><br><span class="line">LIST_FILE=hdfsdumper.num.list</span><br><span class="line"></span><br><span class="line">size=`cat ./$LIST_FILE | wc -l`</span><br><span class="line"></span><br><span class="line">line_index=1</span><br><span class="line">while [ $line_index -le $size ]</span><br><span class="line">do</span><br><span class="line">    machine=`cat ./$LIST_FILE | sed -n -e &quot;$&#123;line_index&#125;p&quot; | awk -F&apos; &apos; &apos;&#123;print $1&#125;&apos;`</span><br><span class="line">    number=`cat ./$LIST_FILE | sed -n -e &quot;$&#123;line_index&#125;p&quot; | awk -F&apos; &apos; &apos;&#123;print $2&#125;&apos;`</span><br><span class="line">    nohup expect -c &quot;</span><br><span class="line">        spawn ssh root@$machine;</span><br><span class="line">        expect &#123;</span><br><span class="line">        \&quot;Are you sure you want to continue connecting (yes/no)? \&quot; &#123;send \&quot;yes\r\&quot;;exp_continue&#125;</span><br><span class="line">        \&quot;*password: \&quot; &#123;send \&quot;password\n \&quot;; exp_continue&#125;</span><br><span class="line">        \&quot;]# \&quot; &#123;send \&quot;su work; exit\n\&quot;; exp_continue&#125;</span><br><span class="line">        \&quot;bash-4.1$*\&quot; &#123;send \&quot;cd /home/work/xxx &amp;&amp; sh control.sh start; exit\n\&quot;; exp_continue&#125;</span><br><span class="line">        \&quot;]$ \&quot; &#123;send \&quot;cd /home/work/xxx &amp;&amp; sh control.sh start; exit\n\&quot;; exp_continue&#125;</span><br><span class="line">        &#125;&quot; &amp;</span><br><span class="line">    line_index=`expr $line_index + 1`</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
+
+<h2 id="远程同步文件"><a href="#远程同步文件" class="headerlink" title="远程同步文件"></a>远程同步文件</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/bash</span><br><span class="line"></span><br><span class="line">LIST_FILE=hdfsdumper.num.list</span><br><span class="line"></span><br><span class="line">size=`cat ./$LIST_FILE | wc -l`</span><br><span class="line"></span><br><span class="line">file_name=./dumper/jdk.tar.gz</span><br><span class="line"></span><br><span class="line">line_index=1</span><br><span class="line">while [ $line_index -le $size ]</span><br><span class="line">do</span><br><span class="line">    machine=`cat ./$LIST_FILE | sed -n -e &quot;$&#123;line_index&#125;p&quot; | awk -F&apos; &apos; &apos;&#123;print $1&#125;&apos;`</span><br><span class="line">    number=`cat ./$LIST_FILE | sed -n -e &quot;$&#123;line_index&#125;p&quot; | awk -F&apos; &apos; &apos;&#123;print $2&#125;&apos;`</span><br><span class="line">    expect -c &quot;</span><br><span class="line">        spawn rsync -avz $file_name root@$machine:/home/work/opencrawler</span><br><span class="line">        expect &#123;</span><br><span class="line">        \&quot;Are you sure you want to continue connecting (yes/no)? \&quot; &#123;send \&quot;yes\r\&quot;;exp_continue&#125;</span><br><span class="line">        \&quot;*password: \&quot; &#123;send \&quot;password\n \&quot;; interact&#125;; &#125;&quot;;</span><br><span class="line">    line_index=`expr $line_index + 1`</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
+
+<h2 id="switch-case"><a href="#switch-case" class="headerlink" title="switch case"></a>switch case</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">cmd=$1</span><br><span class="line">case $cmd in</span><br><span class="line">start)</span><br><span class="line">    echo &quot;in start command.&quot;</span><br><span class="line">    if [ -f &quot;running_tag.txt&quot; ];then</span><br><span class="line">        echo &quot;running_tag file is exist, already running!&quot;</span><br><span class="line">        exit 1</span><br><span class="line">    fi  </span><br><span class="line">    nohup java -Xms1000m -Xmx1000m -Xmn500m -XX:+UseParallelGC $&#123;MAIN_CLASSNAME&#125; &gt;&gt;log/crontabservice_terminal.log 2&gt;&amp;1 &amp;</span><br><span class="line">    ret=$?</span><br><span class="line">    if [ $ret -eq 0 ];then</span><br><span class="line">        echo &quot;start [OK].&quot;</span><br><span class="line">    else</span><br><span class="line">        echo &quot;start [FAILED].&quot;</span><br><span class="line">    fi</span><br><span class="line">    ;;</span><br><span class="line">stop)</span><br><span class="line">    echo &quot;in stop command.&quot;</span><br><span class="line">    ret=`ps aux | grep &quot;$&#123;MAIN_CLASSNAME&#125;&quot; | grep -v &quot;grep&quot; | awk &apos;&#123;print $2&#125;&apos;`</span><br><span class="line">    if [ ! $ret ];then</span><br><span class="line">        echo &quot;MODULE:$&#123;MAIN_CLASSNAME&#125; not started.&quot;</span><br><span class="line">        exit 1</span><br><span class="line">    fi</span><br><span class="line">    echo &quot;pid:$ret&quot;</span><br><span class="line">    kill -9 $ret</span><br><span class="line">    if [ $? -eq 0 ];then</span><br><span class="line">        rm -f running_tag.txt</span><br><span class="line">    fi</span><br><span class="line">    rm -f running_tag.txt</span><br><span class="line">    echo &quot;Stop [OK].&quot;</span><br><span class="line">    ;;</span><br><span class="line">*)</span><br><span class="line">    help</span><br><span class="line">    exit 1</span><br><span class="line">    ;;</span><br><span class="line">esac</span><br></pre></td></tr></table></figure>
+
+
       
     </div>
     
@@ -713,7 +711,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#读取文件每一行"><span class="nav-number">1.</span> <span class="nav-text">读取文件每一行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#变量自增"><span class="nav-number">2.</span> <span class="nav-text">变量自增</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#字符串去空格"><span class="nav-number">3.</span> <span class="nav-text">字符串去空格</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#shell参数扩展"><span class="nav-number">4.</span> <span class="nav-text">shell参数扩展</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#读取文件每一行"><span class="nav-number">1.</span> <span class="nav-text">读取文件每一行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#变量自增"><span class="nav-number">2.</span> <span class="nav-text">变量自增</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#字符串去空格"><span class="nav-number">3.</span> <span class="nav-text">字符串去空格</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#shell参数扩展"><span class="nav-number">4.</span> <span class="nav-text">shell参数扩展</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Supervise进程监控"><span class="nav-number">5.</span> <span class="nav-text">Supervise进程监控</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#远程操作"><span class="nav-number">6.</span> <span class="nav-text">远程操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#远程同步文件"><span class="nav-number">7.</span> <span class="nav-text">远程同步文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#switch-case"><span class="nav-number">8.</span> <span class="nav-text">switch case</span></a></li></ol></div>
             
 
           </div>
