@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Java,认证,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Austin Brant" type="application/atom+xml">
+
+
+
+
+
+
+<meta name="description" content="本文档主要针对RESTful API做访问认证。 API认证简介对于认证方式，需要通过使用AccessKeyId/SecretAccessKey加密的方法来验证某个请求的发送者身份。  AccessKeyId（AK）用于标示用户，SecretAccessKey（SK）是用户用于加密认证字符串和Server端用来验证认证字符串的密钥  其中SK必须保密，只有用户和Dayu知道。 当Server端接收">
+<meta name="keywords" content="Java,认证">
+<meta property="og:type" content="article">
+<meta property="og:title" content="API签名认证机制">
+<meta property="og:url" content="http://yoursite.com/2020/03/23/API签名认证机制/index.html">
+<meta property="og:site_name" content="Austin Brant">
+<meta property="og:description" content="本文档主要针对RESTful API做访问认证。 API认证简介对于认证方式，需要通过使用AccessKeyId/SecretAccessKey加密的方法来验证某个请求的发送者身份。  AccessKeyId（AK）用于标示用户，SecretAccessKey（SK）是用户用于加密认证字符串和Server端用来验证认证字符串的密钥  其中SK必须保密，只有用户和Dayu知道。 当Server端接收">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/api_authentication_structure.jpg">
+<meta property="og:image" content="http://yoursite.com/images/api_signature_pro.jpg">
+<meta property="og:updated_time" content="2020-03-23T07:02:04.343Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="API签名认证机制">
+<meta name="twitter:description" content="本文档主要针对RESTful API做访问认证。 API认证简介对于认证方式，需要通过使用AccessKeyId/SecretAccessKey加密的方法来验证某个请求的发送者身份。  AccessKeyId（AK）用于标示用户，SecretAccessKey（SK）是用户用于加密认证字符串和Server端用来验证认证字符串的密钥  其中SK必须保密，只有用户和Dayu知道。 当Server端接收">
+<meta name="twitter:image" content="http://yoursite.com/images/api_authentication_structure.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2020/03/23/API签名认证机制/">
+
+
+
+
+
+  <title>API签名认证机制 | Austin Brant</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Austin Brant</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/23/API签名认证机制/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Austin Brant">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Austin Brant">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">API签名认证机制</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-03-23T14:59:05+08:00">
+                2020-03-23
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2020-03-23T15:02:04+08:00">
+                2020-03-23
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/认证/" itemprop="url" rel="index">
+                    <span itemprop="name">认证</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  2.5k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  9
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文档主要针对RESTful API做访问认证。</p>
+<h2 id="API认证简介"><a href="#API认证简介" class="headerlink" title="API认证简介"></a>API认证简介</h2><p>对于认证方式，需要通过使用AccessKeyId/SecretAccessKey加密的方法来验证某个请求的发送者身份。</p>
+<blockquote>
+<p>AccessKeyId（AK）用于标示用户，<br>SecretAccessKey（SK）是用户用于加密认证字符串和Server端用来验证认证字符串的密钥</p>
+</blockquote>
+<p>其中SK必须保密，只有用户和Dayu知道。</p>
+<p>当Server端接收到用户的请求后，系统将使用相同的SK和同样的认证机制生成认证字符串，并与用户请求中包含的认证字符串进行比对。如果认证字符串相同，系统认为用户拥有指定的操作权限，并执行相关操作；如果认证字符串不同，系统将忽略该操作并返回错误码。</p>
+<h3 id="名词解释"><a href="#名词解释" class="headerlink" title="名词解释"></a>名词解释</h3><p>本章节涉及的核心名词解释如下：</p>
+<ul>
+<li><p>认证字符串：非匿名请求中必须携带的认证信息。包含生成待签名串CanonicalRequest所必须的信息以及签名摘要signature。  </p>
+</li>
+<li><p>authStringPrefix：认证字符串的前缀部分。</p>
+</li>
+<li><p>canonicalRequest：待签名串。携带经过规范化处理后的请求信息。</p>
+</li>
+<li><p>signingKey：签名Key。server不直接使用SK对待签名串生成摘要。相反的，server端首先使用SK和认证字符串前缀生成signingKey，然后用signingKey对待签名串生成摘要。</p>
+</li>
+<li><p>signature：签名摘要。Server端使用signingKey对canonicalRequest使用HMAC算法计算签名。</p>
+</li>
+</ul>
+<h3 id="API认证优势"><a href="#API认证优势" class="headerlink" title="API认证优势"></a>API认证优势</h3><p>API认证将为用户带来以下优势：</p>
+<ul>
+<li><p>对于请求者的身份进行验证。认证字符串使用指定用户的AK/SK对HTTP请求进行签名，可以起到验证用户身份的作用。</p>
+</li>
+<li><p>对被传输内容进行保护，防止非法篡改。用户基于HTTP请求的指定内容生成认证字符串，如果在传输过程中遭到非法篡改，将导致系统生成的认证字符串与用户生成的认证字符串不匹配，最终导致认证失败。</p>
+</li>
+<li><p>防止重放攻击。认证字符串都具有指定的生效时间，一个请求必须要在指定时间内到达百度云，否则系统将拒绝该请求。</p>
+</li>
+<li><p>为了保护用户的SK信息，百度云不直接使用SK信息，而是使用SK生成SigningKey，同时在SigningKey中包含有效时间范围。这样可以减少用户因SigningKey丢失带来的安全隐患。</p>
+</li>
+</ul>
+<h3 id="API认证方式"><a href="#API认证方式" class="headerlink" title="API认证方式"></a>API认证方式</h3><p>通过认证算法对HTTP请求的指定内容进行计算并输出认证字符串用于认证。开发者需要首先将HTTP请求的指定内容连接成字符串，结合服务分配的SK，通过HMAC算法计算密文摘要，这个过程也就是对HTTP请求进行签名过程。基于认证字符串的HTTP请求签名机制来验证用户身份。对于每个HTTP请求，都需要携带一个认证字符串然后通过以下两种方式将这个认证字符串包含在请求中：</p>
+<ul>
+<li><p>在HTTP Header中包含认证字符串<br>通常使用的方法是在HTTP请求的Authorization头域中包含认证字符串，除了匿名请求之外，所有与Server的交互都应该包含该字段。即：在HTTP Header中加入Authorization: &lt;认证字符串&gt;。</p>
+</li>
+<li><p>在URL中包含认证字符串<br>用户也可以认证字符串放在HTTP请求Query String的authorization参数中。常用于生成URL给第三方使用的场景，例如要临时把某个数据开放给他人下载。即在URL的Query String中加入authorization = &lt;认证字符串&gt;。</p>
+</li>
+</ul>
+<h3 id="认证字符串生成简介"><a href="#认证字符串生成简介" class="headerlink" title="认证字符串生成简介"></a>认证字符串生成简介</h3><p>认证字符串的生成机制如下图所示：<br><img src="/images/api_authentication_structure.jpg" alt></p>
+<p>API使用基于认证字符串的HTTP请求签名机制来验证用户身份，对于非匿名方式的HTTP请求，都应携带一个认证字符串。当Dayu收到用户的HTTP请求后，系统将按照下图所示流程进行处理。<br><img src="/images/api_signature_pro.jpg" alt></p>
+<ul>
+<li><p>（1）判断用户的HTTP请求是否为匿名请求，即用户的请求中是否包含Authorization认证字符串。如果不包含认证字符串，则需要根据不同业务情况，参考其他相关流程进行处理；如果包含认证字符串，则执行下一步操作。</p>
+</li>
+<li><p>（2）判断用户的请求是否超时，即服务器收到请求的时间需要符合以下要求：</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;timestamp&#125; - 5分钟 &lt; 服务器接收到请求时间 &lt; &#123;timestamp&#125; + &#123;expirationPeriodInSeconds&#125; + 5分钟</span><br></pre></td></tr></table></figure>
+
+<p><code>timestamp</code>代表签名生效UTC时间，<code>expirationPeriodInSeconds</code>代表签名有效期限。</p>
+<p>为了防止用户时钟与服务器时钟不同步而导致的认证失败，此处引入5分钟的宽松系数。如果服务器收到请求的时间不符合以上时间要求，则认为请求超时，拒绝该请求；如果符合上述要求，则执行下一步操作。</p>
+<ul>
+<li><p>（3）基于HTTP请求信息，使用相同的算法，生成Signature字符串。</p>
+</li>
+<li><p>（4）使用服务器生成的Signature字符串与用户提供的字符串进行比对，如果内容不一致，则认为认证失败，拒绝该请求；如果内容一致，则表示认证成功，系统将按照用户的请求内容进行操作。</p>
+</li>
+</ul>
+<h2 id="生成认证字符串"><a href="#生成认证字符串" class="headerlink" title="生成认证字符串"></a>生成认证字符串</h2><h3 id="UriEncode函数"><a href="#UriEncode函数" class="headerlink" title="UriEncode函数"></a>UriEncode函数</h3><p>RFC3986规定，”URI非保留字符”包括以下字符：字母（A-Z，a-z）、数字（0-9）、连字号（-）、点号（.）、下划线（_)、波浪线（~），算法实现如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1. 将字符串转换成UTF-8编码的字节流</span><br><span class="line">2. 保留所有“URI非保留字符”原样不变</span><br><span class="line">3. 对其余字节做一次RFC 3986中规定的百分号编码（Percent-encoding），即一个“%”后面跟着两个表示该字节值的十六进制字母，字母一律采用大写形式。</span><br></pre></td></tr></table></figure>
+
+<p>UriEncode()函数Java版本参考代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">uriEncode</span><span class="params">(CharSequence input, <span class="keyword">boolean</span> encodeSlash)</span> </span>&#123;</span><br><span class="line">	StringBuilder result = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">	<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; input.length(); i++) &#123;</span><br><span class="line">	    <span class="keyword">char</span> ch = input.charAt(i);</span><br><span class="line">	    <span class="keyword">if</span> ((ch &gt;= <span class="string">'A'</span> &amp;&amp; ch &lt;= <span class="string">'Z'</span>) || (ch &gt;= <span class="string">'a'</span> &amp;&amp; ch &lt;= <span class="string">'z'</span>) || (ch &gt;= <span class="string">'0'</span> &amp;&amp; ch &lt;= <span class="string">'9'</span>) </span><br><span class="line">	    	|| ch == <span class="string">'_'</span> || ch == <span class="string">'-'</span> || ch == <span class="string">'~'</span> || ch == <span class="string">'.'</span>) &#123;</span><br><span class="line">	        result.append(ch);</span><br><span class="line">	    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ch == <span class="string">'/'</span>) &#123;</span><br><span class="line">	        result.append(encodeSlash ? <span class="string">"%2F"</span> : ch);</span><br><span class="line">	    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">	        result.append(toHexUTF8(ch)); <span class="comment">// 转换成:%&lt;两个表示该字节值的十六进制字母&gt;</span></span><br><span class="line">	    &#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> result.toString();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-生成CanonicalRequest"><a href="#2-生成CanonicalRequest" class="headerlink" title="2 生成CanonicalRequest"></a>2 生成CanonicalRequest</h3><pre><code>CanonicalRequest = HTTP Method + &quot;\n&quot; + CanonicalURI + &quot;\n&quot; + CanonicalQueryString + &quot;\n&quot; + CanonicalHeaders</code></pre><p>其中：</p>
+<ul>
+<li><p>HTTP Method：指HTTP协议中定义的GET、PUT、POST等请求，必须使用全大写的形式。例如：<br>GET、POST、PUT、DELETE、HEAD</p>
+</li>
+<li><p>CanonicalURI：是对URL中的绝对路径进行编码后的结果。要求绝对路径必须以“/”开头，不以“/”开头的需要补充上，空路径为“/”，即CanonicalURI = uriEncode(Path, false)。</p>
+</li>
+<li><p>CanonicalQueryString：对于URL中的Query String（Query String即URL中“？”后面的“key1=valve1&amp;key2=valve2 ”字符串）进行编码后的结果。<br>编码方法为：</p>
+<pre><code>1. 将Query String根据&amp;拆开成若干项，每一项是key=value或者只有key的形式。
+2. 对拆开后的每一项进行如下处理：
+    a. 对于key是authorization，直接忽略。
+    b. 对于只有key的项，转换为uriEncode(key) + &quot;=&quot;的形式。
+    c. 对于key=value的项，转换为 uriEncode(key) + &quot;=&quot; + uriEncode(value) 的形式。这里value可以是空字符串。
+3. 将上面转换后的所有字符串按照字典顺序排序。
+4. 将排序后的字符串按顺序用 &amp; 符号链接起来。</code></pre></li>
+<li><p>CanonicalHeaders：对HTTP请求中的Header部分进行选择性编码的结果。<br>您可以自行决定哪些Header 需要编码。大多数情况下，我们推荐您对以下Header进行编码：</p>
+<ul>
+<li><p>Host</p>
+</li>
+<li><p>Content-Type  </p>
+<p>如果您不想对header进行编码，那么认证字符串中的 {signedHeaders} 可以直接留空，无需填写。您也可以自行选择自己想要编码的Header，只需要在认证字符串中填写 {signedHeaders} 。填写方法为，把所有在这一阶段进行了编码的Header名字转换成全小写之后按照字典序排列，然后用分号（;）连接。</p>
+<p>对于每个要编码的Header进行如下处理：</p>
+<ol>
+<li>将Header的名字变成全小写。</li>
+<li>将Header的值去掉开头和结尾的空白字符。</li>
+<li>经过上一步之后值为空字符串的Header忽略，其余的转换为 uriEncode(name) + “:” + uriEncode(value) 的形式。</li>
+<li>把上面转换后的所有字符串按照字典序进行排序。</li>
+<li>将排序后的字符串按顺序用<code>\n</code>符号连接起来得到最终的CanonicalQueryHeaders。<br>注意：很多发送HTTP请求的第三方库，会添加或者删除你指定的header（例如：某些库会删除content-length:0这个header），如果签名错误，请检查您真实发出的http请求的header，看看是否与签名时的header一样。</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-生成SigningKey"><a href="#3-生成SigningKey" class="headerlink" title="3 生成SigningKey"></a>3 生成SigningKey</h3><pre><code>SigningKey = HMAC-SHA256-HEX(sk, authStringPrefix)</code></pre><p>其中：</p>
+<ul>
+<li>sk为用户的SecretAccessKey。</li>
+<li>authStringPrefix代表认证字符串的前缀部分，即:<code>{accessKeyId}/{timestamp}/{expirationPeriodInSeconds}</code>。</li>
+</ul>
+<h3 id="4-生成Signature"><a href="#4-生成Signature" class="headerlink" title="4 生成Signature"></a>4 生成Signature</h3><pre><code>Signature = HMAC-SHA256-HEX(SigningKey, CanonicalRequest)</code></pre><h3 id="5-生成认证字符串"><a href="#5-生成认证字符串" class="headerlink" title="5 生成认证字符串"></a>5 生成认证字符串</h3><pre><code>认证字符串 = {accessKeyId}/{timestamp}/{expirationPeriodInSeconds}/{signedHeaders}/{signature}</code></pre><ul>
+<li><p>timestamp：签名生效UTC时间戳，格式为13位，例如：1543495783836，默认值为当前时间。</p>
+</li>
+<li><p>expirationPeriodInSeconds：签名有效期限，从timestamp所指定的时间开始计算，时间为秒，默认值为1800秒（30）分钟。</p>
+</li>
+<li><p>signedHeaders：签名算法中涉及到的HTTP头域列表。HTTP头域名字一律要求小写且头域名字之间用分号（;）分隔，如host;content-type。当signedHeaders为空时表示未对header签名。</p>
+</li>
+</ul>
+<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><h3 id="签名函数Java样例"><a href="#签名函数Java样例" class="headerlink" title="签名函数Java样例"></a>签名函数Java样例</h3><p>HMAC-SHA256-HEX()实现样例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 调用HMAC SHA256算法，根据开发者提供的密钥（signingKey）和密文（stringToSign）输出密文摘要，并把结果转换为小写形式的十六进制字符串。</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> signingKey   签名密钥</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> stringToSign 待签名文本</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">hmacSha256Hex</span><span class="params">(String signingKey, String stringToSign)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> InvalidKeyException, NoSuchAlgorithmException </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        Mac mac = Mac.getInstance(<span class="string">"HmacSHA256"</span>);</span><br><span class="line">        mac.init(<span class="keyword">new</span> SecretKeySpec(signingKey.getBytes(UTF8), mac.getAlgorithm()));</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> String(Hex.encodeHex(mac.doFinal(stringToSign.getBytes(UTF8))));</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        log.error(<span class="string">"Fail to generate the signature, &#123;&#125;"</span>, e.getMessage());</span><br><span class="line">        <span class="keyword">throw</span> e;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"><i class="fa fa-tag"></i> Java</a>
+          
+            <a href="/tags/认证/" rel="tag"><i class="fa fa-tag"></i> 认证</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/03/23/转载-Serializable：明明就一个空接口！为什么还要实现它？/" rel="next" title="[转载] Serializable：明明就一个空接口！为什么还要实现它？">
+                <i class="fa fa-chevron-left"></i> [转载] Serializable：明明就一个空接口！为什么还要实现它？
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        
+  <div class="bdsharebuttonbox">
+    <a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+    <a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网"></a>
+    <a href="#" class="bds_sqq" data-cmd="sqq" title="分享到QQ好友"></a>
+    <a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"></a>
+    <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"></a>
+    <a href="#" class="bds_tieba" data-cmd="tieba" title="分享到百度贴吧"></a>
+    <a href="#" class="bds_twi" data-cmd="twi" title="分享到Twitter"></a>
+    <a href="#" class="bds_fbook" data-cmd="fbook" title="分享到Facebook"></a>
+    <a href="#" class="bds_more" data-cmd="more"></a>
+    <a class="bds_count" data-cmd="count"></a>
+  </div>
+  <script>
+    window._bd_share_config = {
+      "common": {
+        "bdText": "",
+        "bdMini": "2",
+        "bdMiniList": false,
+        "bdPic": ""
+      },
+      "share": {
+        "bdSize": "16",
+        "bdStyle": "0"
+      },
+      "image": {
+        "viewList": ["tsina", "douban", "sqq", "qzone", "weixin", "twi", "fbook"],
+        "viewText": "分享到：",
+        "viewSize": "16"
+      }
+    }
+  </script>
+
+<script>
+  with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="Austin Brant">
+            
+              <p class="site-author-name" itemprop="name">Austin Brant</p>
+              <p class="site-description motion-element" itemprop="description">冰冻三尺,非一日之寒</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">57</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">44</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">58</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#API认证简介"><span class="nav-number">1.</span> <span class="nav-text">API认证简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#名词解释"><span class="nav-number">1.1.</span> <span class="nav-text">名词解释</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#API认证优势"><span class="nav-number">1.2.</span> <span class="nav-text">API认证优势</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#API认证方式"><span class="nav-number">1.3.</span> <span class="nav-text">API认证方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#认证字符串生成简介"><span class="nav-number">1.4.</span> <span class="nav-text">认证字符串生成简介</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#生成认证字符串"><span class="nav-number">2.</span> <span class="nav-text">生成认证字符串</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#UriEncode函数"><span class="nav-number">2.1.</span> <span class="nav-text">UriEncode函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-生成CanonicalRequest"><span class="nav-number">2.2.</span> <span class="nav-text">2 生成CanonicalRequest</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-生成SigningKey"><span class="nav-number">2.3.</span> <span class="nav-text">3 生成SigningKey</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-生成Signature"><span class="nav-number">2.4.</span> <span class="nav-text">4 生成Signature</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-生成认证字符串"><span class="nav-number">2.5.</span> <span class="nav-text">5 生成认证字符串</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#附录"><span class="nav-number">3.</span> <span class="nav-text">附录</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#签名函数Java样例"><span class="nav-number">3.1.</span> <span class="nav-text">签名函数Java样例</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Austin Brant</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_sphere.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

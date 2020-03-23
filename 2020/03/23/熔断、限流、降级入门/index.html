@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="分布式,熔断,限流,降级,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Austin Brant" type="application/atom+xml">
+
+
+
+
+
+
+<meta name="description" content="本文将大概讲解下高并发场景下经常用到的熔断、限流、降级基本概念。 熔断简介熔断本质上是一个过载保护机制。 在互联网系统中的熔断机制是指：  当下游服务因访问压力过大而响应变慢或失败，上游服务为了保护自己以及系统整体的可用性，可以暂时切断对下游服务的调用。  做熔断的思路大体上就是：一个中心思想，分四步走。 中心思想是：量力而行。因为软件和人不同，没有奇迹会发生，什么样的性能撑多少流量是固定的。这是">
+<meta name="keywords" content="分布式,熔断,限流,降级">
+<meta property="og:type" content="article">
+<meta property="og:title" content="熔断、限流、降级入门">
+<meta property="og:url" content="http://yoursite.com/2020/03/23/熔断、限流、降级入门/index.html">
+<meta property="og:site_name" content="Austin Brant">
+<meta property="og:description" content="本文将大概讲解下高并发场景下经常用到的熔断、限流、降级基本概念。 熔断简介熔断本质上是一个过载保护机制。 在互联网系统中的熔断机制是指：  当下游服务因访问压力过大而响应变慢或失败，上游服务为了保护自己以及系统整体的可用性，可以暂时切断对下游服务的调用。  做熔断的思路大体上就是：一个中心思想，分四步走。 中心思想是：量力而行。因为软件和人不同，没有奇迹会发生，什么样的性能撑多少流量是固定的。这是">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/rongduan_status.jpg">
+<meta property="og:image" content="http://yoursite.com/images/limit_chunk.jpg">
+<meta property="og:image" content="http://yoursite.com/images/limit_chunk_slick.jpg">
+<meta property="og:image" content="http://yoursite.com/images/limit_leak_bucket.jpg">
+<meta property="og:image" content="http://yoursite.com/images/limit_lingpai.jpg">
+<meta property="og:image" content="http://yoursite.com/images/limit_best_pratice.jpg">
+<meta property="og:updated_time" content="2020-03-23T06:35:36.148Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="熔断、限流、降级入门">
+<meta name="twitter:description" content="本文将大概讲解下高并发场景下经常用到的熔断、限流、降级基本概念。 熔断简介熔断本质上是一个过载保护机制。 在互联网系统中的熔断机制是指：  当下游服务因访问压力过大而响应变慢或失败，上游服务为了保护自己以及系统整体的可用性，可以暂时切断对下游服务的调用。  做熔断的思路大体上就是：一个中心思想，分四步走。 中心思想是：量力而行。因为软件和人不同，没有奇迹会发生，什么样的性能撑多少流量是固定的。这是">
+<meta name="twitter:image" content="http://yoursite.com/images/rongduan_status.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2020/03/23/熔断、限流、降级入门/">
+
+
+
+
+
+  <title>熔断、限流、降级入门 | Austin Brant</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Austin Brant</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/23/熔断、限流、降级入门/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Austin Brant">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Austin Brant">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">熔断、限流、降级入门</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-03-23T14:30:21+08:00">
+                2020-03-23
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2020-03-23T14:35:36+08:00">
+                2020-03-23
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/分布式/" itemprop="url" rel="index">
+                    <span itemprop="name">分布式</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/分布式/高可用/" itemprop="url" rel="index">
+                    <span itemprop="name">高可用</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  5.5k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  19
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文将大概讲解下高并发场景下经常用到的熔断、限流、降级基本概念。</p>
+<h2 id="熔断"><a href="#熔断" class="headerlink" title="熔断"></a>熔断</h2><h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>熔断本质上是一个过载保护机制。</p>
+<p>在互联网系统中的熔断机制是指：</p>
+<blockquote>
+<p>当下游服务因访问压力过大而响应变慢或失败，上游服务为了保护自己以及系统整体的可用性，可以暂时切断对下游服务的调用。</p>
+</blockquote>
+<p>做熔断的思路大体上就是：<strong>一个中心思想，分四步走</strong>。</p>
+<p>中心思想是：<strong>量力而行</strong>。因为软件和人不同，没有奇迹会发生，什么样的性能撑多少流量是固定的。这是根本。</p>
+<p>然后，这四步走分别是：</p>
+<ul>
+<li><p>（1）定义一个识别是否处于“不可用”状态的策略</p>
+</li>
+<li><p>（2）切断联系</p>
+</li>
+<li><p>（3）定义一个识别是否处于“可用”状态的策略，并尝试探测</p>
+</li>
+<li><p>（4）重新恢复正常</p>
+</li>
+</ul>
+<p>定义一个识别是否处于“不正常”状态的策略，识别一个系统是否正常，无非是两个点：</p>
+<ul>
+<li>是不是能调通</li>
+<li>如果能调通，耗时是不是超过预期的长</li>
+</ul>
+<h3 id="熔断状态机"><a href="#熔断状态机" class="headerlink" title="熔断状态机"></a>熔断状态机</h3><h4 id="不可用状态"><a href="#不可用状态" class="headerlink" title="不可用状态"></a>不可用状态</h4><p> 由于分布式系统被建立在一个并不是 100% 可靠的网络上，所以上述的情况总有发生，因此我们不能将偶发的瞬时异常等同于系统“不可用”（避免以偏概全）。由此我们需要引入一个「时间窗口」的概念，这个时间窗口用来“放宽”判定“不可用”的区间，也意味着多给了系统几次证明自己“可用”机会。但是，如果系统还是在这个时间窗口内达到了你定义“不可用”标准，那么我们就要“断臂求生”了。</p>
+<p>这个标准可以有两种方式来指定。</p>
+<ul>
+<li><p><strong>阈值</strong>: 比如，在 10 秒内出现 100 次“无法连接”或者出现 100 次大于 5 秒的请求。</p>
+</li>
+<li><p><strong>百分比</strong>: 比如，在 10 秒内有 30% 请求“无法连接”或者 30% 的请求大于 5 秒。</p>
+</li>
+</ul>
+<p>最终会形成这样这样的一段代码。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">全局变量 errorcount = 0; // 有个独立的线程每隔 10 秒（时间窗口）重置为 0。</span><br><span class="line">全局变量 isOpenCircuitBreaker = false;</span><br><span class="line"> </span><br><span class="line">//do some thing...</span><br><span class="line"> </span><br><span class="line">if(success)&#123;</span><br><span class="line">    return success;</span><br><span class="line">&#125;else&#123;</span><br><span class="line">    errorcount++;</span><br><span class="line">    if(errorcount == 不可用阈值)&#123;</span><br><span class="line">        isOpenCircuitBreaker = true;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="切断联系"><a href="#切断联系" class="headerlink" title="切断联系"></a>切断联系</h4><p>切断联系要尽可能的“果断”，既然已经认定了对方“不可用”，那么索性就默认“失败”，避免做无用功，也顺带能缓解对方的压力。</p>
+<p>分布式系统中的程序间调用，一般都会通过一些 RPC 框架进行。那么，这个时候作为客户端一方，在自己进程内通过代理发起调用之前就可以直接返回失败，不走网络。这就是常说的「<strong>fail fast</strong>」机制。就是在前面提到的代码段之前增加下面的这段代码。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">if(isOpenCircuitBreaker == true)&#123;</span><br><span class="line">    return fail;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//do some thing...</span><br></pre></td></tr></table></figure>
+
+<h4 id="可用状态"><a href="#可用状态" class="headerlink" title="可用状态"></a>可用状态</h4><p>定义一个识别是否处于“可用”状态的策略，并尝试探测</p>
+<p>切断联系后，功能的完整性必然会受影响，所以还是需要尽快恢复回来，以提供完整的服务能力。这事肯定不能人为去干预，及时性必然会受到影响。那么如何能够自动的识别依赖系统是否“可用”呢？这也需要你来定义一个策略。</p>
+<p>一般来说这个策略与识别“不可用”的策略类似，只是这里是一个反向指标。</p>
+<ul>
+<li><p>阈值。比如，在 10 秒内出现 100 次“调用成功”并且耗时都小于 1 秒。</p>
+</li>
+<li><p>百分比。比如，在 10 秒内有 95% 请求“调用成功”并且 98% 的请求小于 1 秒。</p>
+</li>
+</ul>
+<p>同样包含「时间窗口」、「阈值」以及「百分比」。</p>
+<p>稍微不同的地方在于，大多数情况下，一个系统“不可用”的状态往往会持续一段时间，不会那么快就恢复过来。所以我们不需要像第一步中识别“不可用”那样，无时无刻的记录请求状况，而只需要在每隔一段时间之后去进行探测即可。所以，这里多了一个「间隔时间」的概念。这个间隔幅度可以是固定的，比如 30 秒。也可以是动态增加的，通过线性增长或者指数增长等方式。</p>
+<p>这个用代码表述大致是这样。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">全局变量 successCount = 0; </span><br><span class="line">// 有个独立的线程每隔 10 秒（时间窗口）重置为 0。</span><br><span class="line">// 并且将下面的 isHalfOpen 设为 false。</span><br><span class="line">全局变量 isHalfOpen = true;</span><br><span class="line">// 有个独立的线程每隔 30 秒（间隔时间）重置为 true。</span><br><span class="line"></span><br><span class="line">//do some thing...</span><br><span class="line">if(success)&#123;</span><br><span class="line">    if(isHalfOpen)&#123;</span><br><span class="line">        successCount ++;</span><br><span class="line">        if(successCount = 可用阈值)&#123;</span><br><span class="line">            isOpenCircuitBreaker = false;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    return success;</span><br><span class="line">&#125; else &#123;</span><br><span class="line">    errorcount++;</span><br><span class="line">    if(errorcount == 不可用阈值)&#123;</span><br><span class="line">        isOpenCircuitBreaker = true;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>另外，尝试探测本质上是一个“试错”，要控制下“试错成本”。所以我们不可能拿 100% 的流量去验证，一般会有以下两种方式：</p>
+<ul>
+<li><p><strong>放行一定比例的流量去验证。</strong></p>
+</li>
+<li><p>如果在整个通信框架都是统一的情况下，还可以<strong>统一给每个系统增加一个专门用于验证程序健康状态检测的独立接口</strong>。这个接口额外可以多返回一些系统负载信息用于判断健康状态，如 CPU、I/O 的情况等。</p>
+</li>
+</ul>
+<h4 id="重新恢复正常"><a href="#重新恢复正常" class="headerlink" title="重新恢复正常"></a>重新恢复正常</h4><p>一旦通过了衡量是否“可用”的验证，整个系统就恢复到了“正常”状态，此时需要重新开启识别“不可用”的策略。就这样，系统会形成一个循环。</p>
+<p><img src="/images/rongduan_status.jpg" alt></p>
+<h3 id="熔断的最佳实践"><a href="#熔断的最佳实践" class="headerlink" title="熔断的最佳实践"></a>熔断的最佳实践</h3><p>什么场景最适合做熔断<br>一个事物在不同的场景里会发挥出不同的效果。以下是我能想到最适合熔断发挥更大优势的几个场景：</p>
+<ul>
+<li><p>所依赖的系统本身是一个共享系统，当前客户端只是其中的一个客户端。这是因为，如果其它客户端进行胡乱调用也会影响到你的调用。</p>
+</li>
+<li><p>所以依赖的系统被部署在一个共享环境中（资源未做隔离），并不独占使用。比如，和某个高负荷的数据库在同一台服务器上。</p>
+</li>
+<li><p>所依赖的系统是一个经常会迭代更新的服务。这点也意味着，越“敏捷”的系统越需要“熔断”。</p>
+</li>
+<li><p>当前所在的系统流量大小是不确定的。比如，一个电商网站的流量波动会很大，你能抗住突增的流量不代表所依赖的后端系统也能抗住。这点也反映出了我们在软件设计中带着“面向怀疑”的心态的重要性。</p>
+</li>
+</ul>
+<p>与所有事物一样，熔断也不是一个完美的事物，我们特别需要注意 2 个问题：</p>
+<ul>
+<li><p>首先，如果所依赖的系统是多副本或者做了分区的，那么要注意其中个别节点的异常并不等于所有节点都存在异常，所以需要区别对待。</p>
+</li>
+<li><p>其次，熔断往往应作为最后的选择，我们应优先使用一些「降级」或者「限流」方案。因为“部分胜于无”，虽然无法提供完整的服务，但尽可能的降低影响是要持续去努力的。比如，抛弃非核心业务、给出友好提示等等。</p>
+</li>
+</ul>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>上面的这些代码示例中也可以看到，熔断代码所在的位置要么在实际方法之前，要么在实际方法之后。它非常适合 <strong>AOP</strong> 编程思想的发挥，所以我们平常用到的熔断框架都会基于 AOP 去做。</p>
+<p>熔断只是一个保护壳，在周围出现异常的时候保全自身。但是从长远来看平时定期做好压力测试才能更好的防范于未然，降低触发熔断的次数。如果清楚的知道每个系统有几斤几两，在这个基础上再把「限流」和「降级」做好，这基本就将“高压”下触发熔断的概率降到最低了。</p>
+<h2 id="限流"><a href="#限流" class="headerlink" title="限流"></a>限流</h2><p>想象一个稍微极端一点的场景，如果系统流量不是很稳定，导致频繁触发熔断的话，是不是意味着系统一直熔断的三种状态中不断切换。导致的结果是每次从开启熔断到关闭熔断的期间，必然会导致大量的用户无法正常使用。</p>
+<p>那么限流的作用就很显而易见了：<strong>只要系统没宕机，系统只是因为资源不够，而无法应对大量的请求，为了保证有限的系统资源能够提供最大化的服务能力，因而对系统按照预设的规则进行流量（输出或输入）限制的一种方法，确保被接收的流量不会超过系统所能承载的上限。</strong></p>
+<p>限流最好能“限”在一个系统处理能力的上限附近，所以：</p>
+<ol>
+<li><p>通过「压力测试」等方式获得系统的能力上限在哪个水平是第一步。</p>
+</li>
+<li><p>其次，就是制定干预流量的策略。比如标准该怎么定、是否只注重结果还是也要注重过程的平滑性等。</p>
+</li>
+<li><p>最后，就是处理“被干预掉”的流量。能不能直接丢弃？不能的话该如何处理？</p>
+</li>
+</ol>
+<p>常用的策略就 4 种，我给它起了一个简单的定义——「两窗两桶」。两窗就是：固定窗口、滑动窗口，两桶就是：漏桶、令牌桶。</p>
+<h3 id="固定窗口"><a href="#固定窗口" class="headerlink" title="固定窗口"></a>固定窗口</h3><p>固定窗口就是定义一个“固定”的统计周期，比如 1 分钟或者 30 秒、10 秒这样。然后在每个周期统计当前周期中被接收到的请求数量，经过计数器累加后如果达到设定的阈值就触发「流量干预」。直到进入下一个周期后，计数器清零，流量接收恢复正常状态。</p>
+<p><img src="/images/limit_chunk.jpg" alt></p>
+<p>这个策略最简单，写起代码来也没几行。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">全局变量 int totalCount = 0;  // 有一个「固定周期」会触发的定时器将数值清零。</span><br><span class="line"> </span><br><span class="line">if(totalCount &gt; 限流阈值) &#123;</span><br><span class="line">    return; // 不继续处理请求。</span><br><span class="line">&#125;</span><br><span class="line">totalCount++;</span><br><span class="line">    </span><br><span class="line">// do something...</span><br></pre></td></tr></table></figure>
+
+<p>固定窗口有一点需要注意的是，假如请求的进入非常集中，那么所设定的「<strong>限流阈值</strong>」等同于你需要承受的最大并发数。所以，如果需要<strong>顾忌到并发问题，那么这里的「固定周期」设定的要尽可能的短</strong>。因为，这样的话「限流阈值」的数值就可以相应的减小。甚至，<strong>限流阈值就可以直接用并发数来指定</strong>。比如，假设固定周期是 3 秒，那么这里的阈值就可以设定为「平均并发数 *3」。</p>
+<p>不过不管怎么设定，固定窗口永远存在的缺点是：<strong>由于流量的进入往往都不是一个恒定的值，所以一旦流量进入速度有所波动，要么计数器会被提前计满，导致这个周期内剩下时间段的请求被“限制”。要么就是计数器计不满，也就是「限流阈值」设定的过大，导致资源无法充分利用。</strong></p>
+<p>「滑动窗口」可以改善这个问题。</p>
+<h3 id="滑动窗口"><a href="#滑动窗口" class="headerlink" title="滑动窗口"></a>滑动窗口</h3><p>滑动窗口其实就是对固定窗口做了进一步的细分，将原先的粒度切的更细，比如 1 分钟的固定窗口切分为 60 个 1 秒的滑动窗口。然后统计的时间范围随着时间的推移同步后移。</p>
+<p><img src="/images/limit_chunk_slick.jpg" alt></p>
+<p>同时，我们还可以得出一个结论是：如果固定窗口的「固定周期」已经很小了，那么使用滑动窗口的意义也就没有了。举个例子，现在的固定窗口周期已经是 1 秒了，再切分到毫秒级别能反而得不偿失，会带来巨大的性能和资源损耗。</p>
+<p>滑动窗口大致的代码逻辑是这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">全局数组 链表 []  counterList = new 链表 [切分的滑动窗口数量];</span><br><span class="line">// 有一个定时器，在每一次统计时间段起点需要变化的时候就将索引 0 位置的元素移除，并在末端追加一个新元素。</span><br><span class="line"> </span><br><span class="line">int sum = counterList.Sum();</span><br><span class="line">if(sum &gt; 限流阈值) &#123;</span><br><span class="line">    return; // 不继续处理请求。</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">int 当前索引 = 当前时间的秒数 % 切分的滑动窗口数量 ;</span><br><span class="line">counterList[当前索引]++;</span><br><span class="line"> </span><br><span class="line">// do something...</span><br></pre></td></tr></table></figure>
+
+<p>虽然说滑动窗口可以改善这个问题，但是本质上还是预先划定时间片的方式，属于一种“预测”，意味着几乎肯定无法做到 100% 的物尽其用。</p>
+<p>但是，「桶」模式可以做的更好，因为「桶」模式中多了一个缓冲区（桶本身）。</p>
+<h3 id="漏桶"><a href="#漏桶" class="headerlink" title="漏桶"></a>漏桶</h3><p>首先聊聊「漏桶」吧。漏桶模式的核心是固定“出口”的速率，不管进来多少量，出去的速率一直是这么多。如果涌入的量多到桶都装不下了，那么就进行「流量干预」。</p>
+<p><img src="/images/limit_leak_bucket.jpg" alt></p>
+<p>实现代码的简化表示如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">// 全局变量 </span><br><span class="line">int unitSpeed;  // 出口当前的流出速率。每隔一个速率计算周期（比如 1 秒）会触发定时器将数值清零。</span><br><span class="line"></span><br><span class="line">// 全局变量 </span><br><span class="line">int waterLevel; // 当前缓冲区的水位线。</span><br><span class="line"> </span><br><span class="line">if(unitSpeed &lt; 速率阈值) &#123;</span><br><span class="line">    unitSpeed++;</span><br><span class="line">    </span><br><span class="line">    //do something...</span><br><span class="line">&#125; else &#123;</span><br><span class="line">    if(waterLevel &gt; 水位阈值)&#123;</span><br><span class="line">        return; // 不继续处理请求。</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    waterLevel++;</span><br><span class="line">    </span><br><span class="line">    while(unitSpeed &gt;= 速率阈值)&#123;</span><br><span class="line">        sleep(一小段时间)。</span><br><span class="line">    &#125;</span><br><span class="line">    unitSpeed++;</span><br><span class="line">    waterLevel--;</span><br><span class="line">        </span><br><span class="line">    //do something...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="令牌桶"><a href="#令牌桶" class="headerlink" title="令牌桶"></a>令牌桶</h3><p>令牌桶算法和漏桶算法效果一样但方向相反的算法，更加容易理解。随着时间流逝，系统会按恒定1/QPS时间间隔（如果QPS=100，则间隔是10ms）往桶里加入令牌（想象和漏洞漏水相反，有个水龙头在不断的加水），如果桶已经满了就不再加了。新请求来临时，会各自拿走一个令牌，如果没有令牌可拿了就阻塞或者拒绝服务。<strong>这种算法可以应对突发程度的请求，因此比漏桶算法好。</strong> 示意图（来源网络）如下：</p>
+<p><img src="/images/limit_lingpai.jpg" alt></p>
+<h4 id="Guava单机版实现"><a href="#Guava单机版实现" class="headerlink" title="Guava单机版实现"></a>Guava单机版实现</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.google.common.util.concurrent.RateLimiter;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.CountDownLatch;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.ExecutorService;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.Executors;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RateLimiterExample</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        <span class="comment">// qps设置为5，代表一秒钟只允许处理五个并发请求</span></span><br><span class="line">        RateLimiter rateLimiter = RateLimiter.create(<span class="number">5</span>);</span><br><span class="line">        ExecutorService executorService = Executors.newFixedThreadPool(<span class="number">5</span>);</span><br><span class="line">        <span class="keyword">int</span> nTasks = <span class="number">10</span>;</span><br><span class="line">        CountDownLatch countDownLatch = <span class="keyword">new</span> CountDownLatch(nTasks);</span><br><span class="line">        <span class="keyword">long</span> start = System.currentTimeMillis();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; nTasks; i++) &#123;</span><br><span class="line">            <span class="keyword">final</span> <span class="keyword">int</span> j = i;</span><br><span class="line">            executorService.submit(() -&gt; &#123;</span><br><span class="line">                rateLimiter.acquire(<span class="number">1</span>);</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                &#125;</span><br><span class="line">                System.out.println(Thread.currentThread().getName() + <span class="string">" gets job "</span> + j + <span class="string">" done"</span>);</span><br><span class="line">                countDownLatch.countDown();</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">        executorService.shutdown();</span><br><span class="line">        countDownLatch.await();</span><br><span class="line">        <span class="keyword">long</span> end = System.currentTimeMillis();</span><br><span class="line">        System.out.println(<span class="string">"10 jobs gets done by 5 threads concurrently in "</span> + (end - start) + <span class="string">" milliseconds"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">pool-1-thread-1 gets job 0 done</span><br><span class="line">pool-1-thread-2 gets job 1 done</span><br><span class="line">pool-1-thread-3 gets job 2 done</span><br><span class="line">pool-1-thread-4 gets job 3 done</span><br><span class="line">pool-1-thread-5 gets job 4 done</span><br><span class="line">pool-1-thread-6 gets job 5 done</span><br><span class="line">pool-1-thread-7 gets job 6 done</span><br><span class="line">pool-1-thread-8 gets job 7 done</span><br><span class="line">pool-1-thread-9 gets job 8 done</span><br><span class="line">pool-1-thread-10 gets job 9 done</span><br><span class="line">10 jobs gets done by 5 threads concurrently in 2805 milliseconds</span><br></pre></td></tr></table></figure>
+
+<p>上面例子中我们提交10个工作任务，每个任务大概耗时1000微秒，开启10个线程，并且使用RateLimiter设置了qps为5，一秒内只允许五个并发请求被处理，虽然有10个线程，但是我们设置了qps为5，一秒之内只能有五个并发请求。我们预期的总耗时大概是2000微秒左右，结果为2805和预期的差不多。</p>
+<h4 id="Redisson分布式实现"><a href="#Redisson分布式实现" class="headerlink" title="Redisson分布式实现"></a>Redisson分布式实现</h4><p>基于Redis的<a href="http://static.javadoc.io/org.redisson/redisson/3.10.6/org/redisson/api/RRateLimiter.html" target="_blank" rel="noopener">分布式限流器（RateLimiter）</a>可以用来在分布式环境下现在请求方的调用频率。既适用于不同Redisson实例下的多线程限流，也适用于相同Redisson实例下的多线程限流。该算法不保证公平性。除了同步接口外，还提供了异步（<a href="http://static.javadoc.io/org.redisson/redisson/3.10.6/org/redisson/api/RRateLimiterAsync.html" target="_blank" rel="noopener">Async</a>）、反射式（<a href="http://static.javadoc.io/org.redisson/redisson/3.10.6/org/redisson/api/RRateLimiterReactive.html" target="_blank" rel="noopener">Reactive</a>）和 <a href="http://static.javadoc.io/org.redisson/redisson/3.10.6/org/redisson/api/RRateLimiterRx.html" target="_blank" rel="noopener">RxJava2</a> 标准的接口。</p>
+<blockquote>
+<p>Redisson 3.10+ 版本以上</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">limt</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Config config = <span class="keyword">new</span> Config();</span><br><span class="line">    RedissonClient redisson = Redisson.create(config);</span><br><span class="line">    RRateLimiter rateLimiter = redisson.getRateLimiter(<span class="string">"myRateLimiter"</span>);</span><br><span class="line">    <span class="comment">// 初始化, 最大流速 = 每1秒钟产生10个令牌</span></span><br><span class="line">    rateLimiter.trySetRate(RateType.OVERALL, <span class="number">10</span>, <span class="number">1</span>, RateIntervalUnit.SECONDS);</span><br><span class="line">    rateLimiter.tryAcquire(<span class="number">2</span>);</span><br><span class="line">    Thread t = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">        rateLimiter.acquire(<span class="number">2</span>);</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="限流的最佳实践"><a href="#限流的最佳实践" class="headerlink" title="限流的最佳实践"></a>限流的最佳实践</h3><p>一个成熟的分布式系统大致是这样的。<br><img src="/images/limit_best_pratice.jpg" alt></p>
+<p>每一个上游系统都可以理解为是其下游系统的客户端。可能你发现前面聊的「限流」都没有提到到底是在<strong>客户端做限流还是服务端做</strong>，甚至看起来更倾向是建立在服务端的基础上做。但是你知道，在一个分布式系统中，一个服务端本身就可能存在多个副本，并且还会提供给多个客户端调用，甚至其自身也会作为客户端角色。那么，在如此交错复杂的一个环境中，该如何下手做限流呢？我的思路是通过<strong>「一纵一横」</strong>来考量。</p>
+<p><strong>纵</strong><br>都知道「限流」是一个保护措施，那么可以将它想象成一个盾牌。另外，一个请求在系统中的处理过程是链式的。那么，正如古时候军队打仗一样，盾牌兵除了有小部分在老大周围保护，剩下的全在最前线。因为盾的位置越前，能受益的范围越大。</p>
+<p>分布式系统中最前面的是什么？接入层。如果你的系统有接入层，比如用 nginx 做的反向代理。那么可以通过它的 <strong>ngx_http_limit_conn_module</strong> 以及 <strong>ngx_http_limit_req_module</strong> 来做限流，是很成熟的一个解决方案。</p>
+<p>如果没有接入层，那么只能在应用层以 AOP 的思路去做了。但是，由于应用是分散的，出于成本考虑你需要针对性的去做限流。比如 ToC 的应用必然比 ToB 的应用更需要做，高频的缓存系统必然比低频的报表系统更需要做，Web 应用由于存在 Filter 的机制做起来必然比 Service 应用更方便。</p>
+<blockquote>
+<p>那么应用间的限流到底是做到客户端还是服务端呢？</p>
+</blockquote>
+<p>z 哥的观点是，从效果上<strong>客户端模式肯定是优于服务端模式的</strong>，因为当处于被限流状态的时候，客户端模式连建立连接的动作都省了。另一个潜在的好处是，与集中式的服务端模式相比，可以把少数的服务端程序的压力分散掉。但是在客户端做成本也更高，因为它是去中心化的，假如需要多个节点之间的数据共通的话，是一个很麻烦的事情。</p>
+<p>所以，最终 z 哥建议你：<strong>如果考虑成本就服务端模式，考虑效果就客户端模式</strong>。当然也不是绝对，比如一个服务端的流量大部分都来源于某一个客户端，那么就可以直接在这个客户端做限流，这也不失为一个好方案。</p>
+<p>数据库层面的话，一般连接字符串中本身就会包含「最大连接数」的概念，就可以起到限流的作用。如果想做更精细的控制就只能做到统一封装的数据库访问层框架中了。</p>
+<p><strong>横</strong><br>不管是多个客户端，还是同一个服务端的多个副本。每个节点的性能必然会存在差异，如何设立合适的阈值？以及如何让策略的变更尽可能快的在集群中的多个节点生效？说起来很简单，引入一个性能监控平台和配置中心。但这些真真要做好不容易。</p>
+<h2 id="降级"><a href="#降级" class="headerlink" title="降级"></a>降级</h2><p>降级的目的用一句话概括就是：将有限的资源效益最大化。</p>
+<p>根据 28 原则，我们知道一个系统 80% 的效益是由最核心的 20% 的功能产出的。剩下的 20% 效益需要投入 80% 的资源才能达到。</p>
+<p>这就意味着，假如系统平时需要花费 100% 资源做 100% 的事情，如果现在访问量增多 3 倍的话必定扛不住（需要 300% 的资源）。那么，在不增加资源的情况下，我希望系统不能宕机，依旧能正常工作，必然需要让出那解决剩下 20% 问题的 80% 资源。如此一来，理论上这 100% 的资源就可以支撑原先 5 倍的访问量。副作用是功能的完整性上受损 80%。</p>
+<p>当然，在实际的场景中不会降级掉 80% 的功能这么夸张，毕竟还得为用户的体验考虑。</p>
+<p>举个电商场景典型的例子，在大促的时候，最重要的是什么？转化咯～赚钱咯～ 那么这个时候如果说「评论」功能占用了很多资源，你会怎么处理？其实我们可以选择临时关闭提交评论入口、关闭翻页功能等等，让下单的过程有更多的资源来处理。</p>
+<p>主要分为两个环节：<strong>定级定序</strong> 和 <strong>降级实现</strong></p>
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p>[1] <a href="https://www.javazhiyin.com/39808.html" target="_blank" rel="noopener">微服务架构下的分布式限流方案全解析</a></p>
+<p>[2] <a href="https://www.infoq.cn/article/JLb9z4up64MyQjN_ZbSd" target="_blank" rel="noopener">分布式系统关注点：99% 人看得懂的“熔断”以及最佳实践</a></p>
+<p>[3] <a href="https://www.infoq.cn/article/UhixHoWebU_TYJewJwcL" target="_blank" rel="noopener">分布式系统关注点——限流该怎么做？</a></p>
+<p>[4] <a href="https://www.infoq.cn/article/uEIk76o3*3ZpYtcSUQkB" target="_blank" rel="noopener">让你的系统“坚挺不倒”的最后一个大招——「降级」</a></p>
+<p>[5] <a href="https://juejin.im/post/5c7510f3518825625e4ae41b" target="_blank" rel="noopener">Guava RateLimiter限流</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/分布式/" rel="tag"><i class="fa fa-tag"></i> 分布式</a>
+          
+            <a href="/tags/熔断/" rel="tag"><i class="fa fa-tag"></i> 熔断</a>
+          
+            <a href="/tags/限流/" rel="tag"><i class="fa fa-tag"></i> 限流</a>
+          
+            <a href="/tags/降级/" rel="tag"><i class="fa fa-tag"></i> 降级</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/03/23/分布式一致性算法/" rel="next" title="分布式一致性算法">
+                <i class="fa fa-chevron-left"></i> 分布式一致性算法
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/03/23/转载-Serializable：明明就一个空接口！为什么还要实现它？/" rel="prev" title="[转载] Serializable：明明就一个空接口！为什么还要实现它？">
+                [转载] Serializable：明明就一个空接口！为什么还要实现它？ <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        
+  <div class="bdsharebuttonbox">
+    <a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+    <a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网"></a>
+    <a href="#" class="bds_sqq" data-cmd="sqq" title="分享到QQ好友"></a>
+    <a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"></a>
+    <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"></a>
+    <a href="#" class="bds_tieba" data-cmd="tieba" title="分享到百度贴吧"></a>
+    <a href="#" class="bds_twi" data-cmd="twi" title="分享到Twitter"></a>
+    <a href="#" class="bds_fbook" data-cmd="fbook" title="分享到Facebook"></a>
+    <a href="#" class="bds_more" data-cmd="more"></a>
+    <a class="bds_count" data-cmd="count"></a>
+  </div>
+  <script>
+    window._bd_share_config = {
+      "common": {
+        "bdText": "",
+        "bdMini": "2",
+        "bdMiniList": false,
+        "bdPic": ""
+      },
+      "share": {
+        "bdSize": "16",
+        "bdStyle": "0"
+      },
+      "image": {
+        "viewList": ["tsina", "douban", "sqq", "qzone", "weixin", "twi", "fbook"],
+        "viewText": "分享到：",
+        "viewSize": "16"
+      }
+    }
+  </script>
+
+<script>
+  with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="Austin Brant">
+            
+              <p class="site-author-name" itemprop="name">Austin Brant</p>
+              <p class="site-description motion-element" itemprop="description">冰冻三尺,非一日之寒</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">57</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">44</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">58</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#熔断"><span class="nav-number">1.</span> <span class="nav-text">熔断</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#简介"><span class="nav-number">1.1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#熔断状态机"><span class="nav-number">1.2.</span> <span class="nav-text">熔断状态机</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#不可用状态"><span class="nav-number">1.2.1.</span> <span class="nav-text">不可用状态</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#切断联系"><span class="nav-number">1.2.2.</span> <span class="nav-text">切断联系</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#可用状态"><span class="nav-number">1.2.3.</span> <span class="nav-text">可用状态</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#重新恢复正常"><span class="nav-number">1.2.4.</span> <span class="nav-text">重新恢复正常</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#熔断的最佳实践"><span class="nav-number">1.3.</span> <span class="nav-text">熔断的最佳实践</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">1.4.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#限流"><span class="nav-number">2.</span> <span class="nav-text">限流</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#固定窗口"><span class="nav-number">2.1.</span> <span class="nav-text">固定窗口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#滑动窗口"><span class="nav-number">2.2.</span> <span class="nav-text">滑动窗口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#漏桶"><span class="nav-number">2.3.</span> <span class="nav-text">漏桶</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#令牌桶"><span class="nav-number">2.4.</span> <span class="nav-text">令牌桶</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Guava单机版实现"><span class="nav-number">2.4.1.</span> <span class="nav-text">Guava单机版实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Redisson分布式实现"><span class="nav-number">2.4.2.</span> <span class="nav-text">Redisson分布式实现</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#限流的最佳实践"><span class="nav-number">2.5.</span> <span class="nav-text">限流的最佳实践</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#降级"><span class="nav-number">3.</span> <span class="nav-text">降级</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考文章"><span class="nav-number">4.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Austin Brant</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_sphere.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

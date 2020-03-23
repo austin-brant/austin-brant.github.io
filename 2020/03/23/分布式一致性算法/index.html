@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="分布式,一致性,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Austin Brant" type="application/atom+xml">
+
+
+
+
+
+
+<meta name="description" content="PaxosZAB协议ZAB (Zookeeper Atomic Broadcast, Zookeeper 原子消息广播协议)继承了Paxos的理念专门为zookeeper设计的一套数据一致性算法。 ZK 使用一个单一的主进程来保持集群中各副本之间数据的一致性； 将服务器数据的状态变更以事物 Proposal 的形式广播到所有的副本进程上去； ZAB 协议包括两种基本模式：崩溃恢复 和 消息广播 消">
+<meta name="keywords" content="分布式,一致性">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分布式一致性算法">
+<meta property="og:url" content="http://yoursite.com/2020/03/23/分布式一致性算法/index.html">
+<meta property="og:site_name" content="Austin Brant">
+<meta property="og:description" content="PaxosZAB协议ZAB (Zookeeper Atomic Broadcast, Zookeeper 原子消息广播协议)继承了Paxos的理念专门为zookeeper设计的一套数据一致性算法。 ZK 使用一个单一的主进程来保持集群中各副本之间数据的一致性； 将服务器数据的状态变更以事物 Proposal 的形式广播到所有的副本进程上去； ZAB 协议包括两种基本模式：崩溃恢复 和 消息广播 消">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/message_broadcast.jpg">
+<meta property="og:image" content="http://yoursite.com/images/zk_zxid.jpg">
+<meta property="og:image" content="http://yoursite.com/images/zk_leader.jpg">
+<meta property="og:image" content="http://yoursite.com/images/zk_leader2.jpg">
+<meta property="og:image" content="http://yoursite.com/images/zk_leader3.jpg">
+<meta property="og:image" content="http://yoursite.com/images/raft_log_queue.jpg">
+<meta property="og:image" content="http://yoursite.com/images/raft_commit_log.jpg">
+<meta property="og:image" content="http://yoursite.com/images/raft_log_half.jpg">
+<meta property="og:image" content="http://yoursite.com/images/raft_leader_stragey.jpg">
+<meta property="og:image" content="http://yoursite.com/images/term_raft.jpg">
+<meta property="og:image" content="http://yoursite.com/images/gossip_protocol.jpg">
+<meta property="og:image" content="http://yoursite.com/images/redis_ping_pong.jpg">
+<meta property="og:updated_time" content="2020-03-23T06:13:14.411Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="分布式一致性算法">
+<meta name="twitter:description" content="PaxosZAB协议ZAB (Zookeeper Atomic Broadcast, Zookeeper 原子消息广播协议)继承了Paxos的理念专门为zookeeper设计的一套数据一致性算法。 ZK 使用一个单一的主进程来保持集群中各副本之间数据的一致性； 将服务器数据的状态变更以事物 Proposal 的形式广播到所有的副本进程上去； ZAB 协议包括两种基本模式：崩溃恢复 和 消息广播 消">
+<meta name="twitter:image" content="http://yoursite.com/images/message_broadcast.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2020/03/23/分布式一致性算法/">
+
+
+
+
+
+  <title>分布式一致性算法 | Austin Brant</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Austin Brant</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/23/分布式一致性算法/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Austin Brant">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Austin Brant">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">分布式一致性算法</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-03-23T14:04:21+08:00">
+                2020-03-23
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2020-03-23T14:13:14+08:00">
+                2020-03-23
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/分布式/" itemprop="url" rel="index">
+                    <span itemprop="name">分布式</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/分布式/一致性/" itemprop="url" rel="index">
+                    <span itemprop="name">一致性</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  4.1k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  14
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="Paxos"><a href="#Paxos" class="headerlink" title="Paxos"></a>Paxos</h2><h2 id="ZAB协议"><a href="#ZAB协议" class="headerlink" title="ZAB协议"></a>ZAB协议</h2><p>ZAB (Zookeeper Atomic Broadcast, Zookeeper 原子消息广播协议)继承了Paxos的理念专门为zookeeper设计的一套数据一致性算法。</p>
+<p>ZK 使用一个单一的主进程来保持集群中各副本之间数据的一致性；</p>
+<p>将服务器数据的状态变更以事物 <code>Proposal</code> 的形式广播到所有的副本进程上去；</p>
+<p>ZAB 协议包括两种基本模式：崩溃恢复 和 消息广播</p>
+<h3 id="消息广播"><a href="#消息广播" class="headerlink" title="消息广播"></a>消息广播</h3><p><img src="/images/message_broadcast.jpg" alt></p>
+<p>详细过程：</p>
+<ul>
+<li><p>Leader 服务器会为每个事物请求生成对应的 Proposal 来进行广播，并在广播之前为 Proposal 分配一个全局单调递增的唯一 ID（即 ZXID）；</p>
+</li>
+<li><p>Leader 服务器为每个 Follower 服务器各自分配一个单独的队列，将要广播的 Proposal 依次放入队列中，并根据 FIFO 策略进行消息发送；</p>
+</li>
+<li><p>每个 Follower 服务器在收到 Proposal 后，会先将其以事物日志的形式写入本地磁盘，写入成功后，给 Leader 返回 Ack；</p>
+</li>
+<li><p>当 Leader 收到超过半数 Follower 的 Ack 响应后，就会广播 Commit 消息给所有 Follower 服务器通知其开始事物提交；</p>
+</li>
+</ul>
+<p>存在问题：无法处理 Leader 服务器崩溃退出而带来的数据不一致问题，所以 ZAB 协议增加了 崩溃恢复 模式；</p>
+<h3 id="崩溃恢复"><a href="#崩溃恢复" class="headerlink" title="崩溃恢复"></a>崩溃恢复</h3><p>当服务框架在启动中或 Leader 服务器出现网络中断、崩溃、重启情况时，ZAB协议就会进入恢复模式并选举新的Leader；</p>
+<p><strong>ZXID</strong></p>
+<ul>
+<li><p>在 ZAB 协议的事物编号 ZXID 设计中，ZXID 是一个 64 位的数字，低 32 位是简单单调递增计数器，每一个客户端请求 Leader 生成新事物 Proposal 对该计数器 +1；</p>
+</li>
+<li><p>高 32 位表示 Leader 周期 epoch 编号，每当选举产生一个新的 Leader 服务器，就会从这个 Leader 服务器上取出本地日志最大失误 Proposal 的 ZXID，并从 ZXID 中解析出对应的 epoch 值，并 +1，之后就以此编号作为新的 epoch，并将低 32 位，置 0 来开始新的 ZXID；<br><img src="/images/zk_zxid.jpg" alt></p>
+</li>
+</ul>
+<h4 id="集群启动时，Leader-选举"><a href="#集群启动时，Leader-选举" class="headerlink" title="集群启动时，Leader 选举"></a>集群启动时，Leader 选举</h4><p><img src="/images/zk_leader.jpg" alt></p>
+<p>上图中，<code>(1, 1, 0)</code></p>
+<ul>
+<li>第一位数代表投出该选票的服务器的logicClock;</li>
+<li>第二位数代表被推荐的服务器的myid;</li>
+<li>第三位代表被推荐的服务器的最大的zxid;</li>
+</ul>
+<p>由于该步骤中所有选票都投给自己，所以第二位的myid即是自己的myid，第三位的zxid即是自己的zxid。此时各自的票箱中只有自己投给自己的一票</p>
+<p><img src="/images/zk_leader2.jpg" alt></p>
+<p>服务器收到外部投票后，进行选票PK，相应更新自己的选票并广播出去，并将合适的选票存入自己的票箱。</p>
+<p>服务器1收到服务器2的选票（1, 2, 0）和服务器3的选票（1, 3, 0）后，由于所有的logicClock都相等，所有的zxid都相等，因此根据myid判断应该将自己的选票按照服务器3的选票更新为（1, 3, 0），并将自己的票箱全部清空，再将服务器3的选票与自己的选票存入自己的票箱，接着将自己更新后的选票广播出去。此时服务器1票箱内的选票为(1, 3)，(3, 3)。</p>
+<p>同理，服务器2收到服务器3的选票后也将自己的选票更新为（1, 3, 0）并存入票箱然后广播。此时服务器2票箱内的选票为(2, 3)，(3, ,3)。</p>
+<p>服务器3根据上述规则，无须更新选票，自身的票箱内选票仍为（3, 3）。</p>
+<p>服务器1与服务器2更新后的选票广播出去后，由于三个服务器最新选票都相同，最后三者的票箱内都包含三张投给服务器3的选票。</p>
+<p><img src="/images/zk_leader3.jpg" alt></p>
+<p>三个服务器一致认为此时服务器3应该是Leader。因此服务器1和2都进入FOLLOWING状态，而服务器3进入LEADING状态。之后Leader发起并维护与Follower间的心跳。</p>
+<h4 id="集群运行时，Leader-选举"><a href="#集群运行时，Leader-选举" class="headerlink" title="集群运行时，Leader 选举"></a>集群运行时，Leader 选举</h4><p>当过半机器与 Leader 完成状态同步后，ZAB 协议退出恢复模式；</p>
+<h2 id="Raft协议"><a href="#Raft协议" class="headerlink" title="Raft协议"></a>Raft协议</h2><p>Raft协议在功能上是完全等同于(Multi)-Paxos协议的。Raft也是一个原子广播协议（原子广播协议参见《由浅入深理解Paxos协议（1）》），它在分布式系统中的功能以及使用方法和Paxos是完全一样的。我们可以用Raft来替代分布式系统中的Paxos协议</p>
+<h3 id="Raft的设计理念"><a href="#Raft的设计理念" class="headerlink" title="Raft的设计理念"></a>Raft的设计理念</h3><p>严格来说Raft并不属于Paxos的一个变种。Raft协议并不是对Paxos的改进，也没有使用Paxos的基础协议（The Basic Protocol）。Raft协议在设计理念上和Paxos协议是完全相反的。正是由于这个完全不同的理念，使得Raft协议变得简单起来。</p>
+<p>Paxos协议中有一个基本的假设前提：<strong>可能会同时有多个Leader存在</strong>。这里把Paxos协议执行的过程分为以下两个部分：</p>
+<ul>
+<li><p>Leader选举</p>
+</li>
+<li><p>数据广播</p>
+</li>
+</ul>
+<p>在《由浅入深理解Paxos协议（2）》的“Leader的选取”一节中提到过，<strong>Paxos协议并没有给出详细的Leader选举机制。Paxos对于Leader的选举没有限制，用户可以自己定义</strong>。这是因为Paxos协议设计了一个巧妙的数据广播过程，即<strong>Paxos的基本通讯协议（The Basic Protocol）。它有很强的数据一致性保障，即使在多个Leader同时出现时也能够保证广播数据的一致性</strong>。</p>
+<p>而Raft协议走了完全相反的一个思路：<font color="red"><strong>保证不会同时有多个Leader存在</strong></font>。因此Raft协议对Leader的选举做了详细的设计，从而保证不会有多个Leader同时存在。相反，数据广播的过程则变的简单易于理解了。</p>
+<h3 id="Raft的日志广播过程"><a href="#Raft的日志广播过程" class="headerlink" title="Raft的日志广播过程"></a>Raft的日志广播过程</h3><p>为了保证数据被复制到多数的节点上，Raft的广播过程尽管简单仍然要使用多数派协议，只是这个过程要容易理解的多：</p>
+<ul>
+<li><p>发送日志到所有Followers（Raft中将非Leader节点称为Follower）；</p>
+</li>
+<li><p>Followers收到日志后，应答收到日志；</p>
+</li>
+<li><p>当半数以上的Followers应答后，Leader通知Followers日志广播成功；</p>
+</li>
+</ul>
+<p><strong>日志和日志队列</strong></p>
+<p>Raft将用户数据称作日志（Log），存储在一个日志队列里。每个节点上都有一份。队列里的每个日志都一个序号，这个序号是连续递增的不能有缺。<br><img src="/images/raft_log_queue.jpg" alt></p>
+<p>日志队列里有一个重要的位置叫做提交日志的位置（Commit Index）。将日志队列里的日志分为了两个部分：<br> <img src="/images/raft_commit_log.jpg" alt></p>
+<ul>
+<li><p>已提交日志：已经复制到超过半数节点的数据，这些是可以让应用读取到的日志；</p>
+</li>
+<li><p>未提交日志：还未复制到超过半数节点的数据；</p>
+</li>
+</ul>
+<p>当Followers收到日志后，将日志按顺序存储到队列里。但这时Commit Index不会更新，因此这些日志是未提交的日志，不能被读取到。当Leader收到超过半数的Followers的应答后，会更新自己的Commit Index，并将Commit Index广播到Followers上。这时Followers更新Commit Index，未提交的日志就变成了已提交的日志，可以被应用程序去读取到了。</p>
+<p>从上面的解释我们可以知道，<strong>日志队列中已经提交的日志是不可改变的，而未提交的日志则可以被更新成其他的日志（在Leader发生变化时会发生）</strong>。</p>
+<h3 id="Raft的Leader选举"><a href="#Raft的Leader选举" class="headerlink" title="Raft的Leader选举"></a>Raft的Leader选举</h3><p>Raft称它的Leader为“Strong Leader”。Strong Leader 有以下特点：</p>
+<ul>
+<li><p>同一时间只有一个Leader；</p>
+</li>
+<li><p>只能从Leader向Followers发送数据，反之不行；</p>
+</li>
+</ul>
+<p>下面我们看一下Raft通过哪些机制来实现Strong Leader。</p>
+<h4 id="多数派协议"><a href="#多数派协议" class="headerlink" title="多数派协议"></a>多数派协议</h4><p>为了保证只有一个Leader被选举出来，选举的过程使用了多数派协议。这样很好理解，当一个Candidate（申请成为Leader的节点）请求成为Leader时，只有半数以上的Followers同意后，才能成为Leader。投票过程如下：</p>
+<ul>
+<li><p>当发现Leader无响应后（一段时间内没有日志或心跳），Candidate发送投票请求；</p>
+</li>
+<li><p>Followers投票；</p>
+</li>
+<li><p>如果超过半数的Followers投了票，则Candidate自动变成Leader，开始广播日志；</p>
+</li>
+</ul>
+<h4 id="随机超时机制"><a href="#随机超时机制" class="headerlink" title="随机超时机制"></a>随机超时机制</h4><p>和《由浅入深理解Paxos协议（1）》中提到问题一样，这里也会发生多个Candidate同时发送投票请求，而导致谁都不能够得到多数赞成票的情况，有可能永远也选不出Leader。为了保证Leader选举的效率，Raft在投票选举中使用了随机超时的机制：</p>
+<ul>
+<li><p>在每个Followers上设定的Leader超时时间是在一个范围内随机的。这样可以尽量让Followers不在同一时间发起Leader选举；</p>
+</li>
+<li><p>每个Candidate发起投票后，如果在一段时间内没有任何Candidate称为Leader则，需要重新发起Leader选举。这段等待的时间，在每个Candidate上也是随机的。从而保证不会有多个Candidate同时重新发起Leader选举。</p>
+</li>
+</ul>
+<p>虽说是随机的超时时间，但是也有个范围，太小或者太大都会影响系统的可用性。太小会导致过多的选举冲突，太大又会影响系统的平滑运行。在Raft的论文中，作者将这个超时时间称为electionTimeout，并给出了合理的范围，公式如下：</p>
+<pre><code>broadcastTime ≪ electionTimeout ≪ MTBF</code></pre><p><code>≪</code> 代表数量级上的差异（10倍以上）。</p>
+<h4 id="日志长度过半机制"><a href="#日志长度过半机制" class="headerlink" title="日志长度过半机制"></a>日志长度过半机制</h4><p><strong>Candidate的日志长度要等于或者超过半数节点才能选为Leader。</strong></p>
+<p>当Leader故障时，Followers上日志的状态很可能是不一致的。有的多有的少，而且Commit Index也不尽相同。<br><img src="/images/raft_log_half.jpg" alt></p>
+<p>我们知道已经提交的日志是不能够丢弃的，必须要最终复制到所有的节点上才行。假如在选Leader时，图中Candidate A变成了Leader，就必须要首先从Candidate B上将日志4复制过来，然后才能开始处理新的日志。为了减少复杂性，raft就规定，只有包含了所有已提交日志的Candidate才能当选为Leader。</p>
+<p>实现也很简单：</p>
+<ul>
+<li><p>当发现Leader无响应后（一段时间内没有数据或心跳），Candidate发送投票请求，请求中包含自己日志队列的长度（或者说最大日志的Index）；</p>
+</li>
+<li><p>Followers检查Candidate的日志长度，只有Candidate的日志等于或者长于自己才投票；</p>
+</li>
+<li><p>如果超过半数的Followers投了票，则Candidate自动变成Leader，开始广播数据；</p>
+</li>
+</ul>
+<p><strong>因为已经提交的日志一定被复制到了多数节点上，所以日志长度等于或者长于多数节点的Candidate一定包含了所有已经提交的日志。</strong></p>
+<p><em>为什么不是检查Commit Index？</em></p>
+<blockquote>
+<p>因为Leader故障时，很有可能只有Leader的Commit Index是最大的。<br><img src="/images/raft_leader_stragey.jpg" alt></p>
+<p>如果图中的Candidate A被选举为Leader，那么日志4就会被丢弃。但是日志4已经在原来的Leader上提交了，因此必须被保留才行。所以只能让日志长度更长的Candidate B选为Leader。这种做法有可能把原来Leader没广播完成的日志（图中的日志5）接着广播完成，这没有什么关系。</p>
+</blockquote>
+<h4 id="Followers日志补齐"><a href="#Followers日志补齐" class="headerlink" title="Followers日志补齐"></a>Followers日志补齐</h4><p>当Leader故障时，Followers上的日志状态是不一样的，有长有短。因此新的Leader选出后，首先要将所有Followers的日志补齐才行。因此Leader要询问Followers的日志长度，从最小的日志位置开始补齐。</p>
+<h4 id="Followers未提交日志的更新"><a href="#Followers未提交日志的更新" class="headerlink" title="Followers未提交日志的更新"></a>Followers未提交日志的更新</h4><p>新Leader的日志一定包含所有已经提交的日志。但新Leader的日志不一定是最长的，那些新Leader没有的日志，一定是未提交的日志，因此可以被更新，没有关系的。Leader只需要从自己的当前位置开始插入日志并广播出去就可以了。Followers会用新的日志去更新指定位置上的日志。</p>
+<h3 id="新旧Leader的交替"><a href="#新旧Leader的交替" class="headerlink" title="新旧Leader的交替"></a>新旧Leader的交替</h3><p>新的Leader选出后，开始广播日志。这时如果旧的Leader故障恢复了（比如网络临时中断），并且还认为自己是Leader，也会广播日志。这不就导致了同时有两个Leader出现吗？是的，Raft也没办法让旧的Leader不发日志，但是Raft有办法让Followers拒绝旧Leader的日志。</p>
+<h4 id="Term"><a href="#Term" class="headerlink" title="Term"></a>Term</h4><p>Raft将时间划分为连续的时间段，称为Term。 Term是指从一次Leader选举开始到下一次Leader选举的一段时间。这段时间内只能有一个Leader被选举成功，并负责管理系统或者没有Leader选出。</p>
+<p> <img src="/images/term_raft.jpg" alt></p>
+<p>每个Term都有一个唯一的数字编号。所有Term的数字编号是从小到大连续排列的。</p>
+<h4 id="作废旧Leader"><a href="#作废旧Leader" class="headerlink" title="作废旧Leader"></a>作废旧Leader</h4><p>Term编号在作废旧Leader的过程中至关重要，但却十分简单。过程如下：</p>
+<ul>
+<li><p>发送日志到所有Followers，Leader的Term编号随日志一起发送;</p>
+</li>
+<li><p>Followers收到日志后，检查Leader的Term编号。如果Leader的Term编号等于或者大于自己的当前Term（Current Term）编号，则存储日志到队列并且应答收到日志。否则发送失败消息给Leader，消息中包含自己的当前Term编号。</p>
+</li>
+<li><p>当Leader收到任何Term编号比自己的Term编号大的消息时，则将自己变成Follower。收到的消息包括：Follower给自己的回复消息、新Leader的日志广播消息、Leader的选举消息。</p>
+</li>
+</ul>
+<h2 id="Gossip协议"><a href="#Gossip协议" class="headerlink" title="Gossip协议"></a>Gossip协议</h2><p><strong>RedisCluster是基于Gossip协议的PING/PONG通讯来保证数据分片集群中的状态一致性。</strong></p>
+<p>Gossip协议主要用在分布式系统中各个节点的数据同步。</p>
+<h3 id="Gossip协议原理"><a href="#Gossip协议原理" class="headerlink" title="Gossip协议原理"></a>Gossip协议原理</h3><p>Gossip协议由种子节点发起请求（种子节点即状态发生改变的节点），当一个种子节点有状态需要更新到网络中的其他节点时，它会随机选择周围几个节点进行散播消息，收到消息的节点也会重复此过程，直至网络中的所有节点都收到消息，这个过程需要一定的时间，因此Gossip是一个最终一致性协议。<br><img src="/images/gossip_protocol.jpg" alt></p>
+<p>Gossip协议中提供了三种通讯类型：</p>
+<ul>
+<li><p>PUSH类型：A节点将数据发送给B节点，B节点更新A节点比自己新的数据。</p>
+</li>
+<li><p>PULL类型：A节点将数据发送给B节点，B节点返回比A节点新的数据，A节点再更新自己。</p>
+</li>
+<li><p>PULL/PUSH类型：A节点将数据发送给B节点，B节点返回比A节点新的数据，A节点再更新自己，然后A节点将数据发送给B节点，B节点更新A节点比自己新的数据。</p>
+</li>
+</ul>
+<blockquote>
+<p>PUSH类型发送一次请求，目的是让其他节点更新。</p>
+<p>PULL类型发送两次请求，目的是更新自身节点的信息。</p>
+<p>每个消息都有一个时间戳，用来区分新老信息。</p>
+</blockquote>
+<h3 id="RedisCluster中的PING-PONG通讯"><a href="#RedisCluster中的PING-PONG通讯" class="headerlink" title="RedisCluster中的PING/PONG通讯"></a>RedisCluster中的PING/PONG通讯</h3><ul>
+<li><p>PING：发送集群中节点的信息、角色、集群ID、时间戳。</p>
+</li>
+<li><p>PONG：响应PING的请求。</p>
+</li>
+</ul>
+<p>PING请求即Gossip协议中的PUSH，目的是让其他节点进行更新。</p>
+<p> <img src="/images/redis_ping_pong.jpg" alt></p>
+<p>RedisCluster中的每个节点都会定期的向其他节点发送PING请求，用于集群间状态的同步以及检测节点的可用性。</p>
+<p>当集群中有新节点加入时（经过Meet操作），该节点会向其他节点发送PING请求，同时其他节点也会向其发送PING请求，最终达到数据一致性。</p>
+<ul>
+<li><p>RedisCluster中的节点故障是通过Master投票决定的，当有半数的Master认为该节点故障时，那么集群认为该节点故障，如果故障的节点是Master，那么会将其Slave节点切换为Master。</p>
+</li>
+<li><p>当RedisCluster中有一半的Master同时失效，那么整个集群将不可用，因为已经没有足够的Master进行投票。</p>
+</li>
+</ul>
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a href="https://www.cnblogs.com/hugb/p/8955505.html" target="_blank" rel="noopener">图解分布式一致性协议Paxos</a></p>
+<p><a href="https://dbaplus.cn/news-141-1875-1.html" target="_blank" rel="noopener">实例详解ZooKeeper ZAB协议、分布式锁与领导选举</a></p>
+<p><a href="https://blog.csdn.net/weixin_44861409/article/details/89406795" target="_blank" rel="noopener">Redis集群管理</a></p>
+<p><a href="https://blog.csdn.net/u010003835/article/details/88650121" target="_blank" rel="noopener">大数据_Zookeeper_Raft 协议</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/分布式/" rel="tag"><i class="fa fa-tag"></i> 分布式</a>
+          
+            <a href="/tags/一致性/" rel="tag"><i class="fa fa-tag"></i> 一致性</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/03/23/分布式事务简介/" rel="next" title="分布式事务简介">
+                <i class="fa fa-chevron-left"></i> 分布式事务简介
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/03/23/熔断、限流、降级入门/" rel="prev" title="熔断、限流、降级入门">
+                熔断、限流、降级入门 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        
+  <div class="bdsharebuttonbox">
+    <a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+    <a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网"></a>
+    <a href="#" class="bds_sqq" data-cmd="sqq" title="分享到QQ好友"></a>
+    <a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"></a>
+    <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"></a>
+    <a href="#" class="bds_tieba" data-cmd="tieba" title="分享到百度贴吧"></a>
+    <a href="#" class="bds_twi" data-cmd="twi" title="分享到Twitter"></a>
+    <a href="#" class="bds_fbook" data-cmd="fbook" title="分享到Facebook"></a>
+    <a href="#" class="bds_more" data-cmd="more"></a>
+    <a class="bds_count" data-cmd="count"></a>
+  </div>
+  <script>
+    window._bd_share_config = {
+      "common": {
+        "bdText": "",
+        "bdMini": "2",
+        "bdMiniList": false,
+        "bdPic": ""
+      },
+      "share": {
+        "bdSize": "16",
+        "bdStyle": "0"
+      },
+      "image": {
+        "viewList": ["tsina", "douban", "sqq", "qzone", "weixin", "twi", "fbook"],
+        "viewText": "分享到：",
+        "viewSize": "16"
+      }
+    }
+  </script>
+
+<script>
+  with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.png" alt="Austin Brant">
+            
+              <p class="site-author-name" itemprop="name">Austin Brant</p>
+              <p class="site-description motion-element" itemprop="description">冰冻三尺,非一日之寒</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">57</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">44</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">58</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Paxos"><span class="nav-number">1.</span> <span class="nav-text">Paxos</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZAB协议"><span class="nav-number">2.</span> <span class="nav-text">ZAB协议</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#消息广播"><span class="nav-number">2.1.</span> <span class="nav-text">消息广播</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#崩溃恢复"><span class="nav-number">2.2.</span> <span class="nav-text">崩溃恢复</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#集群启动时，Leader-选举"><span class="nav-number">2.2.1.</span> <span class="nav-text">集群启动时，Leader 选举</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#集群运行时，Leader-选举"><span class="nav-number">2.2.2.</span> <span class="nav-text">集群运行时，Leader 选举</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Raft协议"><span class="nav-number">3.</span> <span class="nav-text">Raft协议</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Raft的设计理念"><span class="nav-number">3.1.</span> <span class="nav-text">Raft的设计理念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Raft的日志广播过程"><span class="nav-number">3.2.</span> <span class="nav-text">Raft的日志广播过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Raft的Leader选举"><span class="nav-number">3.3.</span> <span class="nav-text">Raft的Leader选举</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#多数派协议"><span class="nav-number">3.3.1.</span> <span class="nav-text">多数派协议</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#随机超时机制"><span class="nav-number">3.3.2.</span> <span class="nav-text">随机超时机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#日志长度过半机制"><span class="nav-number">3.3.3.</span> <span class="nav-text">日志长度过半机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Followers日志补齐"><span class="nav-number">3.3.4.</span> <span class="nav-text">Followers日志补齐</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Followers未提交日志的更新"><span class="nav-number">3.3.5.</span> <span class="nav-text">Followers未提交日志的更新</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#新旧Leader的交替"><span class="nav-number">3.4.</span> <span class="nav-text">新旧Leader的交替</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Term"><span class="nav-number">3.4.1.</span> <span class="nav-text">Term</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#作废旧Leader"><span class="nav-number">3.4.2.</span> <span class="nav-text">作废旧Leader</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip协议"><span class="nav-number">4.</span> <span class="nav-text">Gossip协议</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Gossip协议原理"><span class="nav-number">4.1.</span> <span class="nav-text">Gossip协议原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RedisCluster中的PING-PONG通讯"><span class="nav-number">4.2.</span> <span class="nav-text">RedisCluster中的PING/PONG通讯</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考文章"><span class="nav-number">5.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Austin Brant</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_sphere.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
